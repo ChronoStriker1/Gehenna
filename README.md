@@ -26,6 +26,14 @@ User configuration and macros stored in:
 - `docs/roadmap.md`
 - `docs/data-model.md`
 - `docs/permissions.md`
+- `docs/poc.md`
 
 ## Status
 Planning and scaffolding.
+
+## Proof of Concept
+Run the HID enumerator to verify device visibility:
+
+```bash
+swift run GehennaCLI list
+```
