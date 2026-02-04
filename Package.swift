@@ -11,6 +11,10 @@ let package = Package(
       name: "GehennaHID",
       targets: ["GehennaHID"]
     ),
+    .library(
+      name: "GehennaCore",
+      targets: ["GehennaCore"]
+    ),
     .executable(
       name: "GehennaCLI",
       targets: ["GehennaCLI"]
@@ -20,13 +24,16 @@ let package = Package(
     .target(
       name: "GehennaHID"
     ),
+    .target(
+      name: "GehennaCore"
+    ),
     .executableTarget(
       name: "GehennaCLI",
       dependencies: ["GehennaHID"]
     ),
     .testTarget(
       name: "GehennaTests",
-      dependencies: ["GehennaHID"]
+      dependencies: ["GehennaHID", "GehennaCore"]
     )
   ]
 )
