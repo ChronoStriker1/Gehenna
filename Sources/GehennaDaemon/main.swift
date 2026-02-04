@@ -114,6 +114,7 @@ func startDaemon(mapping: DeviceMapping) throws {
     return
   }
 
+  let deviceByInterface = classifyInterfaces(devices: devices)
   let usedInterfaces = Set(mapping.inputs.values.map { $0.hid.interface })
   var listeners: [AnyObject] = []
   var previousKeys: [Int: Set<InputKey>] = [:]
@@ -127,12 +128,10 @@ func startDaemon(mapping: DeviceMapping) throws {
   }
 
   for interfaceIndex in usedInterfaces.sorted() {
-    guard interfaceIndex >= 0, interfaceIndex < devices.count else {
-      print("Mapping references interface \(interfaceIndex), but only \(devices.count) devices were found.")
+    guard let device = deviceByInterface[interfaceIndex] else {
+      print("Mapping references interface \(interfaceIndex), but no matching HID interface was classified.")
       continue
     }
-
-    let device = devices[interfaceIndex]
 
     let hasAxis = mapping.inputs.values.contains {
       $0.hid.interface == interfaceIndex && $0.kind == .axis
@@ -217,6 +216,34 @@ func startDaemon(mapping: DeviceMapping) throws {
 
   print("GehennaDaemon running. Ctrl+C to stop.")
   CFRunLoopRun()
+}
+
+func classifyInterfaces(devices: [HIDDevice]) -> [Int: HIDDevice] {
+  var result: [Int: HIDDevice] = [:]
+
+  for device in devices {
+    let elements = device.elements()
+    let hasWheel = elements.contains { element in
+      element.usagePage == 0x01 && element.usage == 0x38
+    }
+    let reportSize = device.inputReportSize()
+
+    if hasWheel, result[1] == nil {
+      result[1] = device
+      continue
+    }
+
+    if reportSize <= 8, result[0] == nil {
+      result[0] = device
+      continue
+    }
+
+    if result[2] == nil {
+      result[2] = device
+    }
+  }
+
+  return result
 }
 
 func run() -> Int32 {
