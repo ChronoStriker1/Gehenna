@@ -104,11 +104,9 @@ public struct HIDEnumerator {
       IOHIDManagerClose(manager, IOOptionBits(kIOHIDOptionsTypeNone))
     }
 
-    guard let deviceSet = IOHIDManagerCopyDevices(manager) as? Set<IOHIDDevice> else {
-      return []
-    }
+    let devices = devicesFrom(manager: manager)
 
-    return deviceSet.map { device in
+    return devices.map { device in
       HIDDeviceInfo(
         vendorId: device.intProperty(key: kIOHIDVendorIDKey),
         productId: device.intProperty(key: kIOHIDProductIDKey),
@@ -129,6 +127,34 @@ public struct HIDEnumerator {
       }
       return lhs.product < rhs.product
     }
+  }
+}
+
+private func devicesFrom(manager: IOHIDManager) -> [IOHIDDevice] {
+  guard let deviceSet = IOHIDManagerCopyDevices(manager) else {
+    return []
+  }
+
+  if let typedSet = deviceSet as? Set<IOHIDDevice> {
+    return Array(typedSet)
+  }
+
+  if let nsSet = deviceSet as? NSSet {
+    return nsSet.compactMap { $0 as? IOHIDDevice }
+  }
+
+  let count = CFSetGetCount(deviceSet)
+  if count == 0 {
+    return []
+  }
+
+  var values = [UnsafeRawPointer?](repeating: nil, count: count)
+  CFSetGetValues(deviceSet, &values)
+  return values.compactMap { pointer in
+    guard let pointer else {
+      return nil
+    }
+    return unsafeBitCast(pointer, to: IOHIDDevice.self)
   }
 }
 
