@@ -22,12 +22,18 @@ struct ListenOptions {
   var filter = CommonFilter()
   var index: Int?
   var duration: TimeInterval?
+  var mode: ListenMode = .reports
 }
 
 enum Command {
   case list(ListOptions)
   case describe(DescribeOptions)
   case listen(ListenOptions)
+}
+
+enum ListenMode {
+  case reports
+  case values
 }
 
 func printUsage() {
@@ -37,13 +43,14 @@ func printUsage() {
   Usage:
     GehennaCLI list [--vendor <id>] [--product <id>] [--usagePage <id>] [--usage <id>] [--json]
     GehennaCLI describe [--vendor <id>] [--product <id>] [--index <n>]
-    GehennaCLI listen [--vendor <id>] [--product <id>] [--index <n>] [--duration <sec>]
+    GehennaCLI listen [--vendor <id>] [--product <id>] [--index <n>] [--duration <sec>] [--values]
 
   Examples:
     GehennaCLI list
     GehennaCLI list --vendor 0x1532 --product 0x0244
     GehennaCLI describe --vendor 0x1532 --product 0x0244 --index 0
     GehennaCLI listen --vendor 0x1532 --product 0x0244 --index 0
+    GehennaCLI listen --vendor 0x1532 --product 0x0244 --index 1 --values
   """
   print(usage)
 }
@@ -185,6 +192,10 @@ func parseArgs() -> Command? {
           return nil
         }
         options.duration = value
+        index += 1
+        continue
+      case "--values":
+        options.mode = .values
         index += 1
         continue
       default:
@@ -345,23 +356,41 @@ func runListen(_ options: ListenOptions) -> Int32 {
     print("Listening on \(hex(info.vendorId)):\(hex(info.productId)) \(info.product) [\(info.manufacturer)]")
     print("Press buttons or move controls. Ctrl+C to stop.")
 
-    let listener = HIDInputListener(device: device)
-    try listener.start { report in
-      let bytes = report.bytes.map { String(format: "%02X", $0) }.joined(separator: " ")
-      print("[reportId=\(report.reportId) len=\(report.bytes.count)] \(bytes)")
+    let stopHandler: () -> Void
+
+    switch options.mode {
+    case .reports:
+      let listener = HIDInputListener(device: device)
+      try listener.start { report in
+        let bytes = report.bytes.map { String(format: "%02X", $0) }.joined(separator: " ")
+        print("[reportId=\(report.reportId) len=\(report.bytes.count)] \(bytes)")
+      }
+      stopHandler = {
+        listener.stop()
+      }
+    case .values:
+      let listener = HIDValueListener(device: device)
+      try listener.start { event in
+        let usagePage = hex(event.usagePage, width: 2)
+        let usage = hex(event.usage, width: 2)
+        print("[usagePage=\(usagePage) usage=\(usage) value=\(event.intValue) logical=\(event.logicalMin)...\(event.logicalMax) type=\(event.elementType) cookie=\(event.cookie)]")
+      }
+      stopHandler = {
+        listener.stop()
+      }
     }
 
     let signalSource = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
     signal(SIGINT, SIG_IGN)
     signalSource.setEventHandler {
-      listener.stop()
+      stopHandler()
       CFRunLoopStop(CFRunLoopGetCurrent())
     }
     signalSource.resume()
 
     if let duration = options.duration {
       DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-        listener.stop()
+        stopHandler()
         CFRunLoopStop(CFRunLoopGetCurrent())
       }
     }

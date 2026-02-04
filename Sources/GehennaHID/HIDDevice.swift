@@ -123,6 +123,13 @@ public final class HIDDevice {
       )
     }
   }
+
+  func registerInputValueCallback(
+    context: UnsafeMutableRawPointer?,
+    callback: @escaping IOHIDValueCallback
+  ) {
+    IOHIDDeviceRegisterInputValueCallback(device, callback, context)
+  }
 }
 
 public enum HIDDeviceError: Error, LocalizedError {
@@ -139,6 +146,16 @@ public enum HIDDeviceError: Error, LocalizedError {
 public struct HIDInputReport: Sendable, Codable, Equatable {
   public let reportId: Int
   public let bytes: [UInt8]
+}
+
+public struct HIDValueEvent: Sendable, Codable, Equatable {
+  public let usagePage: Int
+  public let usage: Int
+  public let intValue: Int
+  public let logicalMin: Int
+  public let logicalMax: Int
+  public let elementType: String
+  public let cookie: Int
 }
 
 public final class HIDInputListener {
@@ -187,6 +204,50 @@ public final class HIDInputListener {
   }
 }
 
+public final class HIDValueListener {
+  public typealias ValueHandler = (HIDValueEvent) -> Void
+
+  private let device: HIDDevice
+  private var handler: ValueHandler?
+  private var isRunning = false
+
+  public init(device: HIDDevice) {
+    self.device = device
+  }
+
+  public func start(handler: @escaping ValueHandler) throws {
+    if isRunning {
+      return
+    }
+
+    self.handler = handler
+    try device.open()
+
+    let context = Unmanaged.passUnretained(self).toOpaque()
+    device.registerInputValueCallback(context: context, callback: inputValueCallback)
+    device.schedule()
+    isRunning = true
+  }
+
+  public func stop() {
+    guard isRunning else {
+      return
+    }
+
+    device.unschedule()
+    device.close()
+    isRunning = false
+  }
+
+  deinit {
+    stop()
+  }
+
+  fileprivate func handleValue(_ event: HIDValueEvent) {
+    handler?(event)
+  }
+}
+
 private let inputReportCallback: IOHIDReportCallback = {
   context,
   result,
@@ -207,6 +268,35 @@ private let inputReportCallback: IOHIDReportCallback = {
   let listener = Unmanaged<HIDInputListener>.fromOpaque(context).takeUnretainedValue()
   let buffer = UnsafeBufferPointer(start: report, count: reportLength)
   listener.handleReport(reportId: Int(reportID), report: Array(buffer))
+}
+
+private let inputValueCallback: IOHIDValueCallback = {
+  context,
+  result,
+  sender,
+  value in
+
+  guard let context else {
+    return
+  }
+
+  guard result == kIOReturnSuccess else {
+    return
+  }
+
+  let element = IOHIDValueGetElement(value)
+  let event = HIDValueEvent(
+    usagePage: Int(IOHIDElementGetUsagePage(element)),
+    usage: Int(IOHIDElementGetUsage(element)),
+    intValue: Int(IOHIDValueGetIntegerValue(value)),
+    logicalMin: Int(IOHIDElementGetLogicalMin(element)),
+    logicalMax: Int(IOHIDElementGetLogicalMax(element)),
+    elementType: elementTypeName(element),
+    cookie: Int(IOHIDElementGetCookie(element))
+  )
+
+  let listener = Unmanaged<HIDValueListener>.fromOpaque(context).takeUnretainedValue()
+  listener.handleValue(event)
 }
 
 private func elementTypeName(_ element: IOHIDElement) -> String {
