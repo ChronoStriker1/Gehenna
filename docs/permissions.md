@@ -4,6 +4,9 @@
 - Accessibility
 - Input Monitoring
 
+## Output Injection
+When output injection is enabled (`GehennaDaemon --enable-output`), Accessibility permission is required.
+
 ## Potential Entitlements
 - If app is sandboxed, evaluate USB/HID entitlements as needed.
 - If not sandboxed, rely on user-granted permissions and code signing.

@@ -37,4 +37,32 @@ final class GehennaCoreTests: XCTestCase {
     XCTAssertEqual(mapping.device.vendorId, 1)
     XCTAssertEqual(mapping.inputs["k1"]?.hid.modifiers?.first, .leftControl)
   }
+
+  func testProfilesLoader() throws {
+    let json = """
+    {
+      "version": 1,
+      "activeProfileId": "00000000-0000-0000-0000-000000000000",
+      "profiles": [
+        {
+          "id": "00000000-0000-0000-0000-000000000000",
+          "name": "Default",
+          "perAppBundleId": null,
+          "layers": {
+            "1": {
+              "k1": { "type": "key", "keyCode": 4, "modifiers": [] }
+            }
+          }
+        }
+      ]
+    }
+    """
+
+    let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("profiles-test.json")
+    try json.data(using: .utf8)?.write(to: url)
+
+    let config = try ProfilesLoader().load(from: url)
+    XCTAssertEqual(config.version, 1)
+    XCTAssertEqual(config.profiles.first?.layers["1"]?["k1"]?.type, .key)
+  }
 }

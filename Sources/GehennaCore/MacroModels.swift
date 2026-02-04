@@ -32,6 +32,14 @@ public struct Macro: Sendable, Codable, Equatable {
   }
 }
 
+public struct MacroLibrary: Sendable, Codable, Equatable {
+  public let macros: [Macro]
+
+  public init(macros: [Macro]) {
+    self.macros = macros
+  }
+}
+
 public enum ActionType: String, Codable, Sendable {
   case key
   case macro

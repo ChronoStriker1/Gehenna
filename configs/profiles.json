@@ -1,0 +1,379 @@
+{
+  "version": 1,
+  "activeProfileId": "c96279da-9fcc-448b-99a5-4a5eeed8ea08",
+  "profiles": [
+    {
+      "id": "c96279da-9fcc-448b-99a5-4a5eeed8ea08",
+      "name": "Default",
+      "perAppBundleId": null,
+      "layers": {
+        "1": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 80,
+            "modifiers": []
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 79,
+            "modifiers": []
+          }
+        },
+        "2": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 80,
+            "modifiers": []
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 79,
+            "modifiers": []
+          }
+        },
+        "3": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 80,
+            "modifiers": []
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 79,
+            "modifiers": []
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,9 +1,14 @@
 import Foundation
 import GehennaCore
 import GehennaHID
+import ApplicationServices
 
 struct DaemonConfig {
   let mappingPath: String?
+  let profilesPath: String?
+  let macrosPath: String?
+  let enableOutput: Bool
+  let seize: Bool
 }
 
 struct InputKey: Hashable {
@@ -32,6 +37,86 @@ private let modifierOrder: [HIDModifier] = [
   .rightGUI
 ]
 
+private let hidUsageToKeyCode: [Int: CGKeyCode] = [
+  0x04: 0,   // A
+  0x05: 11,  // B
+  0x06: 8,   // C
+  0x07: 2,   // D
+  0x08: 14,  // E
+  0x09: 3,   // F
+  0x0A: 5,   // G
+  0x0B: 4,   // H
+  0x0C: 34,  // I
+  0x0D: 38,  // J
+  0x0E: 40,  // K
+  0x0F: 37,  // L
+  0x10: 46,  // M
+  0x11: 45,  // N
+  0x12: 31,  // O
+  0x13: 35,  // P
+  0x14: 12,  // Q
+  0x15: 15,  // R
+  0x16: 1,   // S
+  0x17: 17,  // T
+  0x18: 32,  // U
+  0x19: 9,   // V
+  0x1A: 13,  // W
+  0x1B: 7,   // X
+  0x1C: 16,  // Y
+  0x1D: 6,   // Z
+  0x1E: 18,  // 1
+  0x1F: 19,  // 2
+  0x20: 20,  // 3
+  0x21: 21,  // 4
+  0x22: 23,  // 5
+  0x23: 22,  // 6
+  0x24: 26,  // 7
+  0x25: 28,  // 8
+  0x26: 25,  // 9
+  0x27: 29,  // 0
+  0x28: 36,  // Enter
+  0x29: 53,  // Escape
+  0x2A: 51,  // Backspace
+  0x2B: 48,  // Tab
+  0x2C: 49,  // Space
+  0x2D: 27,  // -
+  0x2E: 24,  // =
+  0x2F: 33,  // [
+  0x30: 30,  // ]
+  0x31: 42,  // \\
+  0x33: 41,  // ;
+  0x34: 39,  // '
+  0x35: 50,  // `
+  0x36: 43,  // ,
+  0x37: 47,  // .
+  0x38: 44,  // /
+  0x39: 57,  // CapsLock
+  0x3A: 122, // F1
+  0x3B: 120, // F2
+  0x3C: 99,  // F3
+  0x3D: 118, // F4
+  0x3E: 96,  // F5
+  0x3F: 97,  // F6
+  0x40: 98,  // F7
+  0x41: 100, // F8
+  0x42: 101, // F9
+  0x43: 109, // F10
+  0x44: 103, // F11
+  0x45: 111, // F12
+  0x4F: 124, // Right
+  0x50: 123, // Left
+  0x51: 125, // Down
+  0x52: 126, // Up
+  0xE0: 59,  // L-Ctrl
+  0xE1: 56,  // L-Shift
+  0xE2: 58,  // L-Alt
+  0xE3: 55,  // L-GUI
+  0xE4: 62,  // R-Ctrl
+  0xE5: 60,  // R-Shift
+  0xE6: 61,  // R-Alt
+  0xE7: 54   // R-GUI
+]
+
 func normalizedModifiers(_ modifiers: [HIDModifier]?) -> [HIDModifier] {
   let list = modifiers ?? []
   return list.sorted {
@@ -44,6 +129,10 @@ func parseArgs() -> DaemonConfig {
   args.removeFirst()
 
   var mappingPath: String?
+  var profilesPath: String?
+  var macrosPath: String?
+  var enableOutput = false
+  var seize = false
   var index = 0
   while index < args.count {
     let arg = args[index]
@@ -53,13 +142,33 @@ func parseArgs() -> DaemonConfig {
       if index < args.count {
         mappingPath = args[index]
       }
+    case "--profiles":
+      index += 1
+      if index < args.count {
+        profilesPath = args[index]
+      }
+    case "--macros":
+      index += 1
+      if index < args.count {
+        macrosPath = args[index]
+      }
+    case "--enable-output":
+      enableOutput = true
+    case "--seize":
+      seize = true
     default:
       break
     }
     index += 1
   }
 
-  return DaemonConfig(mappingPath: mappingPath)
+  return DaemonConfig(
+    mappingPath: mappingPath,
+    profilesPath: profilesPath,
+    macrosPath: macrosPath,
+    enableOutput: enableOutput,
+    seize: seize
+  )
 }
 
 func defaultMappingURL() -> URL? {
@@ -80,6 +189,42 @@ func defaultMappingURL() -> URL? {
   return nil
 }
 
+func defaultProfilesURL() -> URL? {
+  let fm = FileManager.default
+  if let appSupport = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
+    let path = appSupport.appendingPathComponent("Gehenna", isDirectory: true)
+      .appendingPathComponent("profiles.json")
+    if fm.fileExists(atPath: path.path) {
+      return path
+    }
+  }
+
+  let local = URL(fileURLWithPath: "configs/profiles.json")
+  if fm.fileExists(atPath: local.path) {
+    return local
+  }
+
+  return nil
+}
+
+func defaultMacrosURL() -> URL? {
+  let fm = FileManager.default
+  if let appSupport = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
+    let path = appSupport.appendingPathComponent("Gehenna", isDirectory: true)
+      .appendingPathComponent("macros.json")
+    if fm.fileExists(atPath: path.path) {
+      return path
+    }
+  }
+
+  let local = URL(fileURLWithPath: "configs/macros.json")
+  if fm.fileExists(atPath: local.path) {
+    return local
+  }
+
+  return nil
+}
+
 func loadMapping(config: DaemonConfig) throws -> DeviceMapping {
   let loader = MappingLoader()
   if let mappingPath = config.mappingPath {
@@ -90,6 +235,109 @@ func loadMapping(config: DaemonConfig) throws -> DeviceMapping {
   }
 
   throw MappingError.fileNotFound
+}
+
+func loadProfiles(config: DaemonConfig) throws -> ProfilesConfig {
+  let loader = ProfilesLoader()
+  if let profilesPath = config.profilesPath {
+    return try loader.load(from: URL(fileURLWithPath: profilesPath))
+  }
+  if let url = defaultProfilesURL() {
+    return try loader.load(from: url)
+  }
+
+  throw ProfilesError.fileNotFound
+}
+
+func loadMacros(config: DaemonConfig) throws -> MacroLibrary {
+  let loader = MacroLibraryLoader()
+  if let macrosPath = config.macrosPath {
+    return try loader.load(from: URL(fileURLWithPath: macrosPath))
+  }
+  if let url = defaultMacrosURL() {
+    return try loader.load(from: url)
+  }
+
+  return MacroLibrary(macros: [])
+}
+
+func activeProfile(from config: ProfilesConfig) -> LayeredProfile? {
+  if let activeId = config.activeProfileId {
+    return config.profiles.first { $0.id == activeId }
+  }
+  return config.profiles.first
+}
+
+func resolveAction(profile: LayeredProfile, layer: Int, inputId: String) -> Action? {
+  if let action = profile.layers["\(layer)"]?[inputId] {
+    return action
+  }
+  if layer != 1, let fallback = profile.layers["1"]?[inputId] {
+    return fallback
+  }
+  return nil
+}
+
+func cgFlags(from modifiers: [HIDModifier]?) -> CGEventFlags {
+  var flags: CGEventFlags = []
+  for modifier in modifiers ?? [] {
+    switch modifier {
+    case .leftControl, .rightControl:
+      flags.insert(.maskControl)
+    case .leftShift, .rightShift:
+      flags.insert(.maskShift)
+    case .leftAlt, .rightAlt:
+      flags.insert(.maskAlternate)
+    case .leftGUI, .rightGUI:
+      flags.insert(.maskCommand)
+    }
+  }
+  return flags
+}
+
+final class EventInjector: @unchecked Sendable {
+  private let source = CGEventSource(stateID: .hidSystemState)
+
+  func sendKey(usage: Int, modifiers: [HIDModifier]?, isDown: Bool) {
+    guard let keyCode = hidUsageToKeyCode[usage] else {
+      print("[inject] Unknown HID usage \(usage)")
+      return
+    }
+
+    guard let event = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: isDown) else {
+      return
+    }
+
+    event.flags = cgFlags(from: modifiers)
+    event.post(tap: .cghidEventTap)
+  }
+}
+
+final class MacroRunner {
+  private let injector: EventInjector
+
+  init(injector: EventInjector) {
+    self.injector = injector
+  }
+
+  func run(_ macro: Macro) {
+    var offsetMs = 0
+    for step in macro.steps {
+      switch step.type {
+      case .delay:
+        offsetMs += max(0, step.delayMs ?? 0)
+      case .keyDown, .keyUp:
+        guard let keyCode = step.keyCode else {
+          continue
+        }
+        let isDown = step.type == .keyDown
+        let modifiers = step.modifiers
+        DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(offsetMs)) { [injector] in
+          injector.sendKey(usage: keyCode, modifiers: modifiers, isDown: isDown)
+        }
+      }
+    }
+  }
 }
 
 func buildLookup(mapping: DeviceMapping) -> [InputKey: String] {
@@ -106,7 +354,7 @@ func buildLookup(mapping: DeviceMapping) -> [InputKey: String] {
   return lookup
 }
 
-func startDaemon(mapping: DeviceMapping) throws {
+func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: MacroLibrary, config: DaemonConfig) throws {
   let lookup = buildLookup(mapping: mapping)
   let match = HIDMatch(vendorId: mapping.device.vendorId, productId: mapping.device.productId)
   let devices = try HIDEnumerator().openDevices(match: match)
@@ -124,6 +372,18 @@ func startDaemon(mapping: DeviceMapping) throws {
   var currentLayer = 1
   var layerHoldActive = false
   var layerUsedAsModifier = false
+  let injector = EventInjector()
+  let macroRunner = MacroRunner(injector: injector)
+  let macroLookup = Dictionary(uniqueKeysWithValues: macros.macros.map { ($0.id, $0) })
+  let active = profiles.flatMap { activeProfile(from: $0) }
+  let enableOutput = config.enableOutput && active != nil
+  let openOptions = config.seize
+    ? IOOptionBits(kIOHIDOptionsTypeSeizeDevice)
+    : IOOptionBits(kIOHIDOptionsTypeNone)
+
+  if config.enableOutput && active == nil {
+    print("Output enabled but no profiles loaded. Output will remain disabled.")
+  }
 
   func emit(_ event: InputEvent) {
     if let value = event.value {
@@ -139,6 +399,42 @@ func startDaemon(mapping: DeviceMapping) throws {
     }
     currentLayer = currentLayer % 3 + 1
     print("[layer] switched to \(currentLayer)")
+  }
+
+  func effectiveLayer() -> Int {
+    if layerHoldActive {
+      return currentLayer % 3 + 1
+    }
+    return currentLayer
+  }
+
+  func handleAction(inputId: String, state: String) {
+    guard enableOutput, let profile = active else {
+      return
+    }
+
+    guard let action = resolveAction(profile: profile, layer: effectiveLayer(), inputId: inputId) else {
+      return
+    }
+
+    switch action.type {
+    case .disabled:
+      return
+    case .key:
+      guard let keyCode = action.keyCode else {
+        return
+      }
+      let isDown = state == "pressed"
+      injector.sendKey(usage: keyCode, modifiers: action.modifiers, isDown: isDown)
+    case .macro:
+      guard state == "pressed" else {
+        return
+      }
+      guard let macroId = action.macroId, let macro = macroLookup[macroId] else {
+        return
+      }
+      macroRunner.run(macro)
+    }
   }
 
   for interfaceIndex in usedInterfaces.sorted() {
@@ -157,7 +453,7 @@ func startDaemon(mapping: DeviceMapping) throws {
 
     if hasAxis {
       let listener = HIDValueListener(device: device)
-      try listener.start { event in
+      try listener.start(handler: { event in
         let key = InputKey(
           interface: interfaceIndex,
           usagePage: event.usagePage,
@@ -174,17 +470,17 @@ func startDaemon(mapping: DeviceMapping) throws {
             inputId: inputId,
             state: "axis",
             value: event.intValue,
-            layer: currentLayer,
+            layer: effectiveLayer(),
             layerModifier: layerHoldActive
           ))
         }
-      }
+      }, openOptions: openOptions)
       listeners.append(listener)
     }
 
     if hasKeys {
       let listener = HIDInputListener(device: device)
-      try listener.start { report in
+      try listener.start(handler: { report in
         guard let decoded = HIDKeyboardReportDecoder.decode(report: report.bytes) else {
           return
         }
@@ -232,28 +528,32 @@ func startDaemon(mapping: DeviceMapping) throws {
 
         for key in pressed {
           if let inputId = lookup[key] {
-            emit(InputEvent(
+            let event = InputEvent(
               inputId: inputId,
               state: "pressed",
               value: nil,
-              layer: currentLayer,
+              layer: effectiveLayer(),
               layerModifier: layerHoldActive
-            ))
+            )
+            emit(event)
+            handleAction(inputId: inputId, state: "pressed")
           }
         }
 
         for key in released {
           if let inputId = lookup[key] {
-            emit(InputEvent(
+            let event = InputEvent(
               inputId: inputId,
               state: "released",
               value: nil,
-              layer: currentLayer,
+              layer: effectiveLayer(),
               layerModifier: layerHoldActive
-            ))
+            )
+            emit(event)
+            handleAction(inputId: inputId, state: "released")
           }
         }
-      }
+      }, openOptions: openOptions)
       listeners.append(listener)
     }
   }
@@ -307,7 +607,22 @@ func run() -> Int32 {
   do {
     let mapping = try loadMapping(config: config)
     print("Loaded mapping: \(mapping.layout.name) for \(mapping.device.name)")
-    try startDaemon(mapping: mapping)
+    let profiles = try? loadProfiles(config: config)
+    let macros = (try? loadMacros(config: config)) ?? MacroLibrary(macros: [])
+    if profiles != nil {
+      print("Loaded profiles.")
+    } else {
+      print("No profiles loaded (output disabled).")
+    }
+    if config.enableOutput {
+      print("Output injection enabled.")
+    } else {
+      print("Output injection disabled.")
+    }
+    if config.seize {
+      print("Seize mode enabled.")
+    }
+    try startDaemon(mapping: mapping, profiles: profiles, macros: macros, config: config)
     return 0
   } catch {
     print("Error: \(error.localizedDescription)")

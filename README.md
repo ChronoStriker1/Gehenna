@@ -29,6 +29,11 @@ User configuration and macros stored in:
 - `docs/poc.md`
 - `docs/input-map.md`
 
+## Configs
+- `configs/tartarus-pro.windows-default.json` (device input map)
+- `configs/profiles.json` (default profile bindings)
+- `configs/macros.json` (macro library)
+
 ## Status
 Planning and scaffolding.
 
@@ -37,4 +42,17 @@ Run the HID enumerator to verify device visibility:
 
 ```bash
 swift run GehennaCLI list
+```
+
+## Daemon
+Start the input daemon (no output injection):
+
+```bash
+swift run GehennaDaemon
+```
+
+Enable output injection (requires Accessibility permission):
+
+```bash
+swift run GehennaDaemon --enable-output
 ```
