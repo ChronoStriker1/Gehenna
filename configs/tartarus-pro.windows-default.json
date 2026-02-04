@@ -136,6 +136,10 @@
     "wheel.scroll": {
       "kind": "axis",
       "hid": { "interface": 1, "usagePage": 1, "usage": 56 }
+    },
+    "layer.toggle": {
+      "kind": "button",
+      "hid": { "interface": 0, "usagePage": 7, "usage": 0, "modifiers": ["L-Alt"] }
     }
   }
 }

@@ -19,3 +19,6 @@ If any key is physically different, we will adjust after a short calibration pas
 
 ## Mapping File
 See `configs/tartarus-pro.windows-default.json` for the initial mapping. This file will be used by the daemon to translate raw HID input into internal button IDs.
+
+## Layer Button
+The layer switch emits **Left Alt** on interface 0 with no key usage. We map it as `layer.toggle`. The daemon treats:\n- Tap: cycle layer 1 → 2 → 3 → 1\n- Hold + press another key: act as a modifier for that key (no layer cycle)

@@ -17,6 +17,8 @@ struct InputEvent {
   let inputId: String
   let state: String
   let value: Int?
+  let layer: Int
+  let layerModifier: Bool
 }
 
 private let modifierOrder: [HIDModifier] = [
@@ -118,13 +120,25 @@ func startDaemon(mapping: DeviceMapping) throws {
   let usedInterfaces = Set(mapping.inputs.values.map { $0.hid.interface })
   var listeners: [AnyObject] = []
   var previousKeys: [Int: Set<InputKey>] = [:]
+  var previousModifiers: [Int: Set<HIDModifier>] = [:]
+  var currentLayer = 1
+  var layerHoldActive = false
+  var layerUsedAsModifier = false
 
   func emit(_ event: InputEvent) {
     if let value = event.value {
-      print("[\(event.state)] \(event.inputId) value=\(value)")
+      print("[\(event.state)] \(event.inputId) value=\(value) layer=\(event.layer) mod=\(event.layerModifier)")
     } else {
-      print("[\(event.state)] \(event.inputId)")
+      print("[\(event.state)] \(event.inputId) layer=\(event.layer) mod=\(event.layerModifier)")
     }
+  }
+
+  func toggleLayerIfNeeded() {
+    if layerUsedAsModifier {
+      return
+    }
+    currentLayer = currentLayer % 3 + 1
+    print("[layer] switched to \(currentLayer)")
   }
 
   for interfaceIndex in usedInterfaces.sorted() {
@@ -156,7 +170,13 @@ func startDaemon(mapping: DeviceMapping) throws {
         }
 
         if event.intValue != 0 {
-          emit(InputEvent(inputId: inputId, state: "axis", value: event.intValue))
+          emit(InputEvent(
+            inputId: inputId,
+            state: "axis",
+            value: event.intValue,
+            layer: currentLayer,
+            layerModifier: layerHoldActive
+          ))
         }
       }
       listeners.append(listener)
@@ -169,15 +189,35 @@ func startDaemon(mapping: DeviceMapping) throws {
           return
         }
 
-        let modifiers = normalizedModifiers(HIDModifierSet.toModifiers(decoded.modifiers))
+        let modifiers = Set(HIDModifierSet.toModifiers(decoded.modifiers))
+        let filteredModifiers = normalizedModifiers(modifiers.filter { $0 != .leftAlt })
         let keys = decoded.keys
+
+        if interfaceIndex == 0 {
+          let previous = previousModifiers[interfaceIndex] ?? Set()
+          let hasLayerNow = modifiers.contains(.leftAlt)
+          let hadLayer = previous.contains(.leftAlt)
+
+          if hasLayerNow && !hadLayer {
+            layerHoldActive = true
+            layerUsedAsModifier = false
+            print("[layer] hold start")
+          } else if !hasLayerNow && hadLayer {
+            layerHoldActive = false
+            toggleLayerIfNeeded()
+            layerUsedAsModifier = false
+            print("[layer] hold end")
+          }
+
+          previousModifiers[interfaceIndex] = modifiers
+        }
 
         let currentSet: Set<InputKey> = Set(keys.map { key in
           InputKey(
             interface: interfaceIndex,
             usagePage: 7,
             usage: Int(key),
-            modifiers: modifiers
+            modifiers: filteredModifiers
           )
         })
 
@@ -186,15 +226,31 @@ func startDaemon(mapping: DeviceMapping) throws {
         let released = previous.subtracting(currentSet)
         previousKeys[interfaceIndex] = currentSet
 
+        if layerHoldActive, !pressed.isEmpty {
+          layerUsedAsModifier = true
+        }
+
         for key in pressed {
           if let inputId = lookup[key] {
-            emit(InputEvent(inputId: inputId, state: "pressed", value: nil))
+            emit(InputEvent(
+              inputId: inputId,
+              state: "pressed",
+              value: nil,
+              layer: currentLayer,
+              layerModifier: layerHoldActive
+            ))
           }
         }
 
         for key in released {
           if let inputId = lookup[key] {
-            emit(InputEvent(inputId: inputId, state: "released", value: nil))
+            emit(InputEvent(
+              inputId: inputId,
+              state: "released",
+              value: nil,
+              layer: currentLayer,
+              layerModifier: layerHoldActive
+            ))
           }
         }
       }
