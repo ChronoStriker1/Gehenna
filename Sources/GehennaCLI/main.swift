@@ -144,6 +144,8 @@ func parseArgs() -> Command? {
           return nil
         }
         options.index = value
+        index += 1
+        continue
       default:
         let (filter, newIndex, error) = parseCommon(args: args, indexStart: index)
         if let error {
@@ -156,8 +158,8 @@ func parseArgs() -> Command? {
         }
         options.filter = filter
         index = newIndex
+        continue
       }
-      index += 1
     }
     return .describe(options)
 
@@ -174,6 +176,8 @@ func parseArgs() -> Command? {
           return nil
         }
         options.index = value
+        index += 1
+        continue
       case "--duration":
         index += 1
         guard index < args.count, let value = Double(args[index]), value > 0 else {
@@ -181,6 +185,8 @@ func parseArgs() -> Command? {
           return nil
         }
         options.duration = value
+        index += 1
+        continue
       default:
         let (filter, newIndex, error) = parseCommon(args: args, indexStart: index)
         if let error {
@@ -193,8 +199,8 @@ func parseArgs() -> Command? {
         }
         options.filter = filter
         index = newIndex
+        continue
       }
-      index += 1
     }
     return .listen(options)
 
