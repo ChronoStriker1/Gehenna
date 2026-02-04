@@ -1,0 +1,141 @@
+{
+  "version": 1,
+  "device": {
+    "vendorId": 5426,
+    "productId": 580,
+    "name": "Razer Tartarus Pro"
+  },
+  "layout": {
+    "name": "windows-default",
+    "rows": [
+      ["k01", "k02", "k03", "k04", "k05"],
+      ["k06", "k07", "k08", "k09", "k10"],
+      ["k11", "k12", "k13", "k14", "k15"],
+      ["k16", "k17", "k18", "k19", "k20"]
+    ],
+    "labels": {
+      "k01": "1",
+      "k02": "2",
+      "k03": "3",
+      "k04": "4",
+      "k05": "5",
+      "k06": "Tab",
+      "k07": "Q",
+      "k08": "W",
+      "k09": "E",
+      "k10": "R",
+      "k11": "CapsLock",
+      "k12": "A",
+      "k13": "S",
+      "k14": "D",
+      "k15": "F",
+      "k16": "L-Shift",
+      "k17": "Z",
+      "k18": "X",
+      "k19": "C",
+      "k20": "Space"
+    }
+  },
+  "inputs": {
+    "k01": {
+      "kind": "button",
+      "hid": { "interface": 2, "usagePage": 7, "usage": 30, "modifiers": ["L-Ctrl"] }
+    },
+    "k02": {
+      "kind": "button",
+      "hid": { "interface": 2, "usagePage": 7, "usage": 31, "modifiers": ["L-Ctrl"] }
+    },
+    "k03": {
+      "kind": "button",
+      "hid": { "interface": 2, "usagePage": 7, "usage": 32, "modifiers": ["L-Ctrl"] }
+    },
+    "k04": {
+      "kind": "button",
+      "hid": { "interface": 2, "usagePage": 7, "usage": 33, "modifiers": ["L-Ctrl"] }
+    },
+    "k05": {
+      "kind": "button",
+      "hid": { "interface": 2, "usagePage": 7, "usage": 34, "modifiers": ["L-Ctrl"] }
+    },
+    "k06": {
+      "kind": "button",
+      "hid": { "interface": 2, "usagePage": 7, "usage": 43, "modifiers": ["L-Ctrl"] }
+    },
+    "k07": {
+      "kind": "button",
+      "hid": { "interface": 2, "usagePage": 7, "usage": 20, "modifiers": ["L-Ctrl"] }
+    },
+    "k08": {
+      "kind": "button",
+      "hid": { "interface": 2, "usagePage": 7, "usage": 26, "modifiers": ["L-Ctrl"] }
+    },
+    "k09": {
+      "kind": "button",
+      "hid": { "interface": 2, "usagePage": 7, "usage": 8, "modifiers": ["L-Ctrl"] }
+    },
+    "k10": {
+      "kind": "button",
+      "hid": { "interface": 2, "usagePage": 7, "usage": 21, "modifiers": ["L-Ctrl"] }
+    },
+    "k11": {
+      "kind": "button",
+      "hid": { "interface": 2, "usagePage": 7, "usage": 57, "modifiers": ["L-Ctrl"] }
+    },
+    "k12": {
+      "kind": "button",
+      "hid": { "interface": 2, "usagePage": 7, "usage": 4, "modifiers": ["L-Ctrl"] }
+    },
+    "k13": {
+      "kind": "button",
+      "hid": { "interface": 2, "usagePage": 7, "usage": 22, "modifiers": ["L-Ctrl"] }
+    },
+    "k14": {
+      "kind": "button",
+      "hid": { "interface": 2, "usagePage": 7, "usage": 7, "modifiers": ["L-Ctrl"] }
+    },
+    "k15": {
+      "kind": "button",
+      "hid": { "interface": 2, "usagePage": 7, "usage": 9, "modifiers": ["L-Ctrl"] }
+    },
+    "k16": {
+      "kind": "button",
+      "hid": { "interface": 2, "usagePage": 7, "usage": 225, "modifiers": ["L-Ctrl"] }
+    },
+    "k17": {
+      "kind": "button",
+      "hid": { "interface": 2, "usagePage": 7, "usage": 29, "modifiers": ["L-Ctrl"] }
+    },
+    "k18": {
+      "kind": "button",
+      "hid": { "interface": 2, "usagePage": 7, "usage": 27, "modifiers": ["L-Ctrl"] }
+    },
+    "k19": {
+      "kind": "button",
+      "hid": { "interface": 2, "usagePage": 7, "usage": 6, "modifiers": ["L-Ctrl"] }
+    },
+    "k20": {
+      "kind": "button",
+      "hid": { "interface": 2, "usagePage": 7, "usage": 44, "modifiers": ["L-Ctrl"] }
+    },
+    "dpad.up": {
+      "kind": "button",
+      "hid": { "interface": 0, "usagePage": 7, "usage": 82 }
+    },
+    "dpad.down": {
+      "kind": "button",
+      "hid": { "interface": 0, "usagePage": 7, "usage": 81 }
+    },
+    "dpad.left": {
+      "kind": "button",
+      "hid": { "interface": 0, "usagePage": 7, "usage": 80 }
+    },
+    "dpad.right": {
+      "kind": "button",
+      "hid": { "interface": 0, "usagePage": 7, "usage": 79 }
+    },
+    "wheel.scroll": {
+      "kind": "axis",
+      "hid": { "interface": 1, "usagePage": 1, "usage": 56 }
+    }
+  }
+}

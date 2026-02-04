@@ -27,6 +27,7 @@ User configuration and macros stored in:
 - `docs/data-model.md`
 - `docs/permissions.md`
 - `docs/poc.md`
+- `docs/input-map.md`
 
 ## Status
 Planning and scaffolding.

@@ -25,3 +25,4 @@
 - `profiles.json`
 - `macros.json`
 - `settings.json`
+- `device-mapping.json` (per-device HID input map)
