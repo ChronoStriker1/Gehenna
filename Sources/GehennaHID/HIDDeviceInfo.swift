@@ -93,6 +93,8 @@ public struct HIDEnumerator {
 
     if let matching = match?.toMatchingDictionary() {
       IOHIDManagerSetDeviceMatching(manager, matching)
+    } else {
+      IOHIDManagerSetDeviceMatching(manager, nil)
     }
 
     let openResult = IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
