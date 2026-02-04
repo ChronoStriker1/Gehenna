@@ -75,13 +75,10 @@ public struct HIDDeviceInfo: Sendable, Codable, Equatable {
 }
 
 public enum HIDError: Error, LocalizedError {
-  case managerCreateFailed
   case managerOpenFailed
 
   public var errorDescription: String? {
     switch self {
-    case .managerCreateFailed:
-      return "Failed to create IOHIDManager."
     case .managerOpenFailed:
       return "Failed to open IOHIDManager."
     }
@@ -92,10 +89,7 @@ public struct HIDEnumerator {
   public init() {}
 
   public func listDevices(match: HIDMatch? = nil) throws -> [HIDDeviceInfo] {
-    guard let manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
-    else {
-      throw HIDError.managerCreateFailed
-    }
+    let manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
 
     if let matching = match?.toMatchingDictionary() {
       IOHIDManagerSetDeviceMatching(manager, matching)
@@ -139,8 +133,8 @@ public struct HIDEnumerator {
 }
 
 private extension IOHIDDevice {
-  func stringProperty(key: CFString) -> String {
-    guard let value = IOHIDDeviceGetProperty(self, key) else {
+  func stringProperty(key: String) -> String {
+    guard let value = IOHIDDeviceGetProperty(self, key as CFString) else {
       return ""
     }
 
@@ -151,20 +145,13 @@ private extension IOHIDDevice {
     return ""
   }
 
-  func intProperty(key: CFString) -> Int {
-    guard let value = IOHIDDeviceGetProperty(self, key) else {
+  func intProperty(key: String) -> Int {
+    guard let value = IOHIDDeviceGetProperty(self, key as CFString) else {
       return 0
     }
 
     if let number = value as? NSNumber {
       return number.intValue
-    }
-
-    if let number = value as? CFNumber {
-      var result: Int32 = 0
-      if CFNumberGetValue(number, CFNumberType.sInt32Type, &result) {
-        return Int(result)
-      }
     }
 
     return 0
