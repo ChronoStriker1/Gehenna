@@ -1,0 +1,14 @@
+--indent 2
+--tabwidth 2
+--linebreaks lf
+--wraparguments before-first
+--wrapparameters before-first
+--wrapcollections before-first
+--self insert
+--stripunusedargs closure-only
+--commas inline
+--binarygrouping 4,8
+--decimalgrouping 3,6
+--hexgrouping 4,8
+--octalgrouping 4,8
+--exclude .build,build,DerivedData
