@@ -41,7 +41,7 @@ swift run GehennaCLI listen --vendor 0x1532 --product 0x0244 --index 0 --duratio
 Decode values (helpful for analog inputs and axes):
 
 ```bash
-swift run GehennaCLI listen --vendor 0x1532 --product 0x0244 --index 1 --values --decode
+swift run GehennaCLI listen --vendor 0x1532 --product 0x0244 --index 1 --values --decode --seize
 ```
 
 ## Expected Output

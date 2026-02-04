@@ -85,8 +85,8 @@ public final class HIDDevice {
     return size > 0 ? size : 512
   }
 
-  func open() throws {
-    let result = IOHIDDeviceOpen(device, IOOptionBits(kIOHIDOptionsTypeNone))
+  func open(options: IOOptionBits = IOOptionBits(kIOHIDOptionsTypeNone)) throws {
+    let result = IOHIDDeviceOpen(device, options)
     guard result == kIOReturnSuccess else {
       throw HIDDeviceError.deviceOpenFailed(result)
     }
@@ -171,13 +171,16 @@ public final class HIDInputListener {
     self.buffer = [UInt8](repeating: 0, count: device.inputReportSize())
   }
 
-  public func start(handler: @escaping ReportHandler) throws {
+  public func start(
+    handler: @escaping ReportHandler,
+    openOptions: IOOptionBits = IOOptionBits(kIOHIDOptionsTypeNone)
+  ) throws {
     if isRunning {
       return
     }
 
     self.handler = handler
-    try device.open()
+    try device.open(options: openOptions)
 
     let context = Unmanaged.passUnretained(self).toOpaque()
     device.registerInputReportCallback(buffer: &buffer, context: context, callback: inputReportCallback)
@@ -215,13 +218,16 @@ public final class HIDValueListener {
     self.device = device
   }
 
-  public func start(handler: @escaping ValueHandler) throws {
+  public func start(
+    handler: @escaping ValueHandler,
+    openOptions: IOOptionBits = IOOptionBits(kIOHIDOptionsTypeNone)
+  ) throws {
     if isRunning {
       return
     }
 
     self.handler = handler
-    try device.open()
+    try device.open(options: openOptions)
 
     let context = Unmanaged.passUnretained(self).toOpaque()
     device.registerInputValueCallback(context: context, callback: inputValueCallback)

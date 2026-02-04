@@ -24,6 +24,7 @@ struct ListenOptions {
   var duration: TimeInterval?
   var mode: ListenMode = .reports
   var decode = false
+  var seize = false
 }
 
 enum Command {
@@ -44,14 +45,14 @@ func printUsage() {
   Usage:
     GehennaCLI list [--vendor <id>] [--product <id>] [--usagePage <id>] [--usage <id>] [--json]
     GehennaCLI describe [--vendor <id>] [--product <id>] [--index <n>]
-    GehennaCLI listen [--vendor <id>] [--product <id>] [--index <n>] [--duration <sec>] [--values] [--decode]
+    GehennaCLI listen [--vendor <id>] [--product <id>] [--index <n>] [--duration <sec>] [--values] [--decode] [--seize]
 
   Examples:
     GehennaCLI list
     GehennaCLI list --vendor 0x1532 --product 0x0244
     GehennaCLI describe --vendor 0x1532 --product 0x0244 --index 0
     GehennaCLI listen --vendor 0x1532 --product 0x0244 --index 0
-    GehennaCLI listen --vendor 0x1532 --product 0x0244 --index 1 --values --decode
+    GehennaCLI listen --vendor 0x1532 --product 0x0244 --index 1 --values --decode --seize
   """
   print(usage)
 }
@@ -201,6 +202,10 @@ func parseArgs() -> Command? {
         continue
       case "--decode":
         options.decode = true
+        index += 1
+        continue
+      case "--seize":
+        options.seize = true
         index += 1
         continue
       default:
@@ -522,34 +527,43 @@ func runListen(_ options: ListenOptions) -> Int32 {
     print("Press buttons or move controls. Ctrl+C to stop.")
 
     let stopHandler: () -> Void
+    let openOptions = options.seize
+      ? IOOptionBits(kIOHIDOptionsTypeSeizeDevice)
+      : IOOptionBits(kIOHIDOptionsTypeNone)
 
     switch options.mode {
     case .reports:
       let listener = HIDInputListener(device: device)
-      try listener.start { report in
-        let bytes = report.bytes.map { String(format: "%02X", $0) }.joined(separator: " ")
-        if options.decode {
-          let decoded = decodeKeyboardReport(report)
-          print("[reportId=\(report.reportId) len=\(report.bytes.count)] \(decoded) raw=\(bytes)")
-        } else {
-          print("[reportId=\(report.reportId) len=\(report.bytes.count)] \(bytes)")
-        }
-      }
+      try listener.start(
+        handler: { report in
+          let bytes = report.bytes.map { String(format: "%02X", $0) }.joined(separator: " ")
+          if options.decode {
+            let decoded = decodeKeyboardReport(report)
+            print("[reportId=\(report.reportId) len=\(report.bytes.count)] \(decoded) raw=\(bytes)")
+          } else {
+            print("[reportId=\(report.reportId) len=\(report.bytes.count)] \(bytes)")
+          }
+        },
+        openOptions: openOptions
+      )
       stopHandler = {
         listener.stop()
       }
     case .values:
       let listener = HIDValueListener(device: device)
-      try listener.start { event in
-        let usagePage = hex(event.usagePage, width: 2)
-        let usage = hex(event.usage, width: 2)
-        if options.decode {
-          let name = usageName(usagePage: event.usagePage, usage: event.usage)
-          print("[\(name)] value=\(event.intValue) logical=\(event.logicalMin)...\(event.logicalMax) type=\(event.elementType) cookie=\(event.cookie)")
-        } else {
-          print("[usagePage=\(usagePage) usage=\(usage) value=\(event.intValue) logical=\(event.logicalMin)...\(event.logicalMax) type=\(event.elementType) cookie=\(event.cookie)]")
-        }
-      }
+      try listener.start(
+        handler: { event in
+          let usagePage = hex(event.usagePage, width: 2)
+          let usage = hex(event.usage, width: 2)
+          if options.decode {
+            let name = usageName(usagePage: event.usagePage, usage: event.usage)
+            print("[\(name)] value=\(event.intValue) logical=\(event.logicalMin)...\(event.logicalMax) type=\(event.elementType) cookie=\(event.cookie)")
+          } else {
+            print("[usagePage=\(usagePage) usage=\(usage) value=\(event.intValue) logical=\(event.logicalMin)...\(event.logicalMax) type=\(event.elementType) cookie=\(event.cookie)]")
+          }
+        },
+        openOptions: openOptions
+      )
       stopHandler = {
         listener.stop()
       }
