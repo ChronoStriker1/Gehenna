@@ -137,14 +137,6 @@ private func devicesFrom(manager: IOHIDManager) -> [IOHIDDevice] {
     return []
   }
 
-  if let typedSet = deviceSet as? Set<IOHIDDevice> {
-    return Array(typedSet)
-  }
-
-  if let nsSet = deviceSet as? NSSet {
-    return nsSet.compactMap { $0 as? IOHIDDevice }
-  }
-
   let count = CFSetGetCount(deviceSet)
   if count == 0 {
     return []
