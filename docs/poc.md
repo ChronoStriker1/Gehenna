@@ -13,13 +13,29 @@ Filter by vendor or product ID (hex or decimal):
 
 ```bash
 swift run GehennaCLI list --vendor 0x1532
-swift run GehennaCLI list --vendor 0x1532 --product 0x022B
+swift run GehennaCLI list --vendor 0x1532 --product 0x0244
 ```
 
 Output as JSON:
 
 ```bash
 swift run GehennaCLI list --json
+```
+
+## Describe Device Elements
+```bash
+swift run GehennaCLI describe --vendor 0x1532 --product 0x0244 --index 0
+```
+
+## Listen for Input Reports
+```bash
+swift run GehennaCLI listen --vendor 0x1532 --product 0x0244 --index 0
+```
+
+Stop with Ctrl+C, or set a duration in seconds:
+
+```bash
+swift run GehennaCLI listen --vendor 0x1532 --product 0x0244 --index 0 --duration 10
 ```
 
 ## Expected Output

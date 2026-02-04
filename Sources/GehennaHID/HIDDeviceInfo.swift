@@ -74,6 +74,21 @@ public struct HIDDeviceInfo: Sendable, Codable, Equatable {
   }
 }
 
+extension HIDDeviceInfo {
+  static func from(device: IOHIDDevice) -> HIDDeviceInfo {
+    HIDDeviceInfo(
+      vendorId: device.intProperty(key: kIOHIDVendorIDKey),
+      productId: device.intProperty(key: kIOHIDProductIDKey),
+      product: device.stringProperty(key: kIOHIDProductKey),
+      manufacturer: device.stringProperty(key: kIOHIDManufacturerKey),
+      transport: device.stringProperty(key: kIOHIDTransportKey),
+      usagePage: device.intProperty(key: kIOHIDDeviceUsagePageKey),
+      usage: device.intProperty(key: kIOHIDDeviceUsageKey),
+      locationId: device.intProperty(key: kIOHIDLocationIDKey)
+    )
+  }
+}
+
 public enum HIDError: Error, LocalizedError {
   case managerOpenFailed
 
@@ -109,16 +124,7 @@ public struct HIDEnumerator {
     let devices = devicesFrom(manager: manager)
 
     return devices.map { device in
-      HIDDeviceInfo(
-        vendorId: device.intProperty(key: kIOHIDVendorIDKey),
-        productId: device.intProperty(key: kIOHIDProductIDKey),
-        product: device.stringProperty(key: kIOHIDProductKey),
-        manufacturer: device.stringProperty(key: kIOHIDManufacturerKey),
-        transport: device.stringProperty(key: kIOHIDTransportKey),
-        usagePage: device.intProperty(key: kIOHIDDeviceUsagePageKey),
-        usage: device.intProperty(key: kIOHIDDeviceUsageKey),
-        locationId: device.intProperty(key: kIOHIDLocationIDKey)
-      )
+      HIDDeviceInfo.from(device: device)
     }
     .sorted { lhs, rhs in
       if lhs.vendorId != rhs.vendorId {
@@ -129,6 +135,37 @@ public struct HIDEnumerator {
       }
       return lhs.product < rhs.product
     }
+  }
+
+  public func openDevices(match: HIDMatch? = nil) throws -> [HIDDevice] {
+    let manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
+
+    if let matching = match?.toMatchingDictionary() {
+      IOHIDManagerSetDeviceMatching(manager, matching)
+    } else {
+      IOHIDManagerSetDeviceMatching(manager, nil)
+    }
+
+    let openResult = IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
+    guard openResult == kIOReturnSuccess else {
+      throw HIDError.managerOpenFailed
+    }
+
+    defer {
+      IOHIDManagerClose(manager, IOOptionBits(kIOHIDOptionsTypeNone))
+    }
+
+    let devices = devicesFrom(manager: manager)
+    return devices.map { HIDDevice(device: $0) }
+      .sorted { lhs, rhs in
+        if lhs.info.vendorId != rhs.info.vendorId {
+          return lhs.info.vendorId < rhs.info.vendorId
+        }
+        if lhs.info.productId != rhs.info.productId {
+          return lhs.info.productId < rhs.info.productId
+        }
+        return lhs.info.product < rhs.info.product
+      }
   }
 }
 
@@ -152,7 +189,7 @@ private func devicesFrom(manager: IOHIDManager) -> [IOHIDDevice] {
   }
 }
 
-private extension IOHIDDevice {
+extension IOHIDDevice {
   func stringProperty(key: String) -> String {
     guard let value = IOHIDDeviceGetProperty(self, key as CFString) else {
       return ""
