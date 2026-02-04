@@ -23,6 +23,7 @@ struct ListenOptions {
   var index: Int?
   var duration: TimeInterval?
   var mode: ListenMode = .reports
+  var decode = false
 }
 
 enum Command {
@@ -43,14 +44,14 @@ func printUsage() {
   Usage:
     GehennaCLI list [--vendor <id>] [--product <id>] [--usagePage <id>] [--usage <id>] [--json]
     GehennaCLI describe [--vendor <id>] [--product <id>] [--index <n>]
-    GehennaCLI listen [--vendor <id>] [--product <id>] [--index <n>] [--duration <sec>] [--values]
+    GehennaCLI listen [--vendor <id>] [--product <id>] [--index <n>] [--duration <sec>] [--values] [--decode]
 
   Examples:
     GehennaCLI list
     GehennaCLI list --vendor 0x1532 --product 0x0244
     GehennaCLI describe --vendor 0x1532 --product 0x0244 --index 0
     GehennaCLI listen --vendor 0x1532 --product 0x0244 --index 0
-    GehennaCLI listen --vendor 0x1532 --product 0x0244 --index 1 --values
+    GehennaCLI listen --vendor 0x1532 --product 0x0244 --index 1 --values --decode
   """
   print(usage)
 }
@@ -198,6 +199,10 @@ func parseArgs() -> Command? {
         options.mode = .values
         index += 1
         continue
+      case "--decode":
+        options.decode = true
+        index += 1
+        continue
       default:
         let (filter, newIndex, error) = parseCommon(args: args, indexStart: index)
         if let error {
@@ -223,6 +228,166 @@ func parseArgs() -> Command? {
 
 func hex(_ value: Int, width: Int = 4) -> String {
   String(format: "0x%0*X", width, value)
+}
+
+func decodeModifiers(_ value: UInt8) -> [String] {
+  var result: [String] = []
+  if value & 0x01 != 0 { result.append("L-Ctrl") }
+  if value & 0x02 != 0 { result.append("L-Shift") }
+  if value & 0x04 != 0 { result.append("L-Alt") }
+  if value & 0x08 != 0 { result.append("L-GUI") }
+  if value & 0x10 != 0 { result.append("R-Ctrl") }
+  if value & 0x20 != 0 { result.append("R-Shift") }
+  if value & 0x40 != 0 { result.append("R-Alt") }
+  if value & 0x80 != 0 { result.append("R-GUI") }
+  return result
+}
+
+func keyName(for usage: UInt8) -> String {
+  switch usage {
+  case 0x00: return "None"
+  case 0x04...0x1D:
+    if let scalar = UnicodeScalar(Int(usage) - 0x04 + 65) {
+      return String(Character(scalar))
+    }
+    return String(format: "Key(0x%02X)", usage)
+  case 0x1E...0x26:
+    return String(Int(usage) - 0x1E + 1)
+  case 0x27: return "0"
+  case 0x28: return "Enter"
+  case 0x29: return "Escape"
+  case 0x2A: return "Backspace"
+  case 0x2B: return "Tab"
+  case 0x2C: return "Space"
+  case 0x2D: return "-"
+  case 0x2E: return "="
+  case 0x2F: return "["
+  case 0x30: return "]"
+  case 0x31: return "\\"
+  case 0x33: return ";"
+  case 0x34: return "'"
+  case 0x35: return "`"
+  case 0x36: return ","
+  case 0x37: return "."
+  case 0x38: return "/"
+  case 0x39: return "CapsLock"
+  case 0x3A...0x45:
+    return "F\(Int(usage) - 0x39)"
+  case 0x46: return "PrintScreen"
+  case 0x47: return "ScrollLock"
+  case 0x48: return "Pause"
+  case 0x49: return "Insert"
+  case 0x4A: return "Home"
+  case 0x4B: return "PageUp"
+  case 0x4C: return "Delete"
+  case 0x4D: return "End"
+  case 0x4E: return "PageDown"
+  case 0x4F: return "RightArrow"
+  case 0x50: return "LeftArrow"
+  case 0x51: return "DownArrow"
+  case 0x52: return "UpArrow"
+  case 0x53: return "NumLock"
+  case 0x54: return "Keypad /"
+  case 0x55: return "Keypad *"
+  case 0x56: return "Keypad -"
+  case 0x57: return "Keypad +"
+  case 0x58: return "Keypad Enter"
+  case 0x59...0x61:
+    return "Keypad \(Int(usage) - 0x59 + 1)"
+  case 0x62: return "Keypad 0"
+  case 0x63: return "Keypad ."
+  case 0x64: return "NonUS \\|"
+  case 0x65: return "App"
+  case 0x66: return "Power"
+  case 0x67: return "Keypad ="
+  case 0x68...0x73:
+    return "F\(Int(usage) - 0x67 + 13)"
+  case 0x74: return "Execute"
+  case 0x75: return "Help"
+  case 0x76: return "Menu"
+  case 0x77: return "Select"
+  case 0x78: return "Stop"
+  case 0x79: return "Again"
+  case 0x7A: return "Undo"
+  case 0x7B: return "Cut"
+  case 0x7C: return "Copy"
+  case 0x7D: return "Paste"
+  case 0x7E: return "Find"
+  case 0x7F: return "Mute"
+  case 0x80: return "VolumeUp"
+  case 0x81: return "VolumeDown"
+  case 0xE0: return "L-Ctrl"
+  case 0xE1: return "L-Shift"
+  case 0xE2: return "L-Alt"
+  case 0xE3: return "L-GUI"
+  case 0xE4: return "R-Ctrl"
+  case 0xE5: return "R-Shift"
+  case 0xE6: return "R-Alt"
+  case 0xE7: return "R-GUI"
+  default:
+    return String(format: "Key(0x%02X)", usage)
+  }
+}
+
+func usageName(usagePage: Int, usage: Int) -> String {
+  switch usagePage {
+  case 0x01:
+    switch usage {
+    case 0x30: return "X"
+    case 0x31: return "Y"
+    case 0x32: return "Z"
+    case 0x33: return "Rx"
+    case 0x34: return "Ry"
+    case 0x35: return "Rz"
+    case 0x36: return "Slider"
+    case 0x37: return "Dial"
+    case 0x38: return "Wheel"
+    case 0x39: return "HatSwitch"
+    default:
+      return "GenericDesktop(0x\(String(format: "%02X", usage)))"
+    }
+  case 0x07:
+    return keyName(for: UInt8(truncatingIfNeeded: usage))
+  case 0x09:
+    return "Button \(usage)"
+  case 0x0C:
+    switch usage {
+    case 0xE2: return "Mute"
+    case 0xE9: return "VolumeUp"
+    case 0xEA: return "VolumeDown"
+    case 0xB5: return "ScanNextTrack"
+    case 0xB6: return "ScanPreviousTrack"
+    case 0xB7: return "Stop"
+    case 0xCD: return "PlayPause"
+    default:
+      return "Consumer(0x\(String(format: "%02X", usage)))"
+    }
+  default:
+    return "UsagePage(0x\(String(format: "%02X", usagePage))) Usage(0x\(String(format: "%02X", usage)))"
+  }
+}
+
+func decodeKeyboardReport(_ report: HIDInputReport) -> String {
+  guard report.bytes.count >= 3 else {
+    return "Short report (\(report.bytes.count) bytes)"
+  }
+
+  let modifiers = decodeModifiers(report.bytes[0])
+  let keys = report.bytes.dropFirst(2).filter { $0 != 0 }.map { keyName(for: $0) }
+
+  if modifiers.isEmpty, keys.isEmpty {
+    return "No keys"
+  }
+
+  var parts: [String] = []
+  if !modifiers.isEmpty {
+    parts.append("mods=\(modifiers.joined(separator: "+"))")
+  }
+  if !keys.isEmpty {
+    parts.append("keys=\(keys.joined(separator: "+"))")
+  }
+
+  return parts.joined(separator: " ")
 }
 
 func renderTable(_ devices: [HIDDeviceInfo]) {
@@ -363,7 +528,12 @@ func runListen(_ options: ListenOptions) -> Int32 {
       let listener = HIDInputListener(device: device)
       try listener.start { report in
         let bytes = report.bytes.map { String(format: "%02X", $0) }.joined(separator: " ")
-        print("[reportId=\(report.reportId) len=\(report.bytes.count)] \(bytes)")
+        if options.decode {
+          let decoded = decodeKeyboardReport(report)
+          print("[reportId=\(report.reportId) len=\(report.bytes.count)] \(decoded) raw=\(bytes)")
+        } else {
+          print("[reportId=\(report.reportId) len=\(report.bytes.count)] \(bytes)")
+        }
       }
       stopHandler = {
         listener.stop()
@@ -373,7 +543,12 @@ func runListen(_ options: ListenOptions) -> Int32 {
       try listener.start { event in
         let usagePage = hex(event.usagePage, width: 2)
         let usage = hex(event.usage, width: 2)
-        print("[usagePage=\(usagePage) usage=\(usage) value=\(event.intValue) logical=\(event.logicalMin)...\(event.logicalMax) type=\(event.elementType) cookie=\(event.cookie)]")
+        if options.decode {
+          let name = usageName(usagePage: event.usagePage, usage: event.usage)
+          print("[\(name)] value=\(event.intValue) logical=\(event.logicalMin)...\(event.logicalMax) type=\(event.elementType) cookie=\(event.cookie)")
+        } else {
+          print("[usagePage=\(usagePage) usage=\(usage) value=\(event.intValue) logical=\(event.logicalMin)...\(event.logicalMax) type=\(event.elementType) cookie=\(event.cookie)]")
+        }
       }
       stopHandler = {
         listener.stop()

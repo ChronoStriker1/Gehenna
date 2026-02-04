@@ -38,6 +38,12 @@ Stop with Ctrl+C, or set a duration in seconds:
 swift run GehennaCLI listen --vendor 0x1532 --product 0x0244 --index 0 --duration 10
 ```
 
+Decode values (helpful for analog inputs and axes):
+
+```bash
+swift run GehennaCLI listen --vendor 0x1532 --product 0x0244 --index 1 --values --decode
+```
+
 ## Expected Output
 - At least one HID device entry for the Tartarus Pro.
 - Vendor/product IDs should match Razer (vendor id commonly 0x1532; confirm on your system).
