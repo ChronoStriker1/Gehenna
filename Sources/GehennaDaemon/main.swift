@@ -10,6 +10,11 @@ struct DaemonConfig {
   let enableOutput: Bool
   let seize: Bool
   let suppressMapped: Bool
+  let injectOnRelease: Bool
+  let logKeyboardType: Bool
+  let suppressKeyboardType: Int?
+  let logTapAll: Bool
+  let seizeFallback: Bool
 }
 
 struct InputKey: Hashable {
@@ -135,6 +140,11 @@ func parseArgs() -> DaemonConfig {
   var enableOutput = false
   var seize = false
   var suppressMapped = false
+  var injectOnRelease = false
+  var logKeyboardType = false
+  var suppressKeyboardType: Int?
+  var logTapAll = false
+  var seizeFallback = false
   var index = 0
   while index < args.count {
     let arg = args[index]
@@ -159,8 +169,21 @@ func parseArgs() -> DaemonConfig {
       suppressMapped = true
     case "--seize":
       seize = true
+    case "--seize-fallback":
+      seizeFallback = true
     case "--allow-native":
       suppressMapped = false
+    case "--inject-release":
+      injectOnRelease = true
+    case "--log-keyboard-type":
+      logKeyboardType = true
+    case "--suppress-keyboard-type":
+      index += 1
+      if index < args.count {
+        suppressKeyboardType = Int(args[index])
+      }
+    case "--log-tap":
+      logTapAll = true
     default:
       break
     }
@@ -173,7 +196,12 @@ func parseArgs() -> DaemonConfig {
     macrosPath: macrosPath,
     enableOutput: enableOutput,
     seize: seize,
-    suppressMapped: suppressMapped
+    suppressMapped: suppressMapped,
+    injectOnRelease: injectOnRelease,
+    logKeyboardType: logKeyboardType,
+    suppressKeyboardType: suppressKeyboardType,
+    logTapAll: logTapAll,
+    seizeFallback: seizeFallback
   )
 }
 
@@ -324,6 +352,7 @@ final class EventInjector: @unchecked Sendable {
 final class EventSuppressor {
   private let window: TimeInterval
   private var recent: [InputKey: CFAbsoluteTime] = [:]
+  private var recentKeyCodes: [CGKeyCode: CFAbsoluteTime] = [:]
   private let queue = DispatchQueue(label: "gehenna.suppressor")
 
   init(window: TimeInterval) {
@@ -337,6 +366,13 @@ final class EventSuppressor {
     }
   }
 
+  func recordKeyCode(_ keyCode: CGKeyCode) {
+    let now = CFAbsoluteTimeGetCurrent()
+    queue.sync {
+      recentKeyCodes[keyCode] = now
+    }
+  }
+
   func shouldSuppress(_ key: InputKey) -> Bool {
     let now = CFAbsoluteTimeGetCurrent()
     return queue.sync {
@@ -344,6 +380,39 @@ final class EventSuppressor {
         return false
       }
       return (now - last) <= window
+    }
+  }
+
+  func shouldSuppressKeyCode(_ keyCode: CGKeyCode) -> Bool {
+    let now = CFAbsoluteTimeGetCurrent()
+    return queue.sync {
+      guard let last = recentKeyCodes[keyCode] else {
+        return false
+      }
+      return (now - last) <= window
+    }
+  }
+}
+
+final class SuppressedKeySet {
+  private var active: Set<CGKeyCode> = []
+  private let queue = DispatchQueue(label: "gehenna.suppressset")
+
+  func add(_ keyCode: CGKeyCode) {
+    _ = queue.sync {
+      active.insert(keyCode)
+    }
+  }
+
+  func remove(_ keyCode: CGKeyCode) {
+    _ = queue.sync {
+      active.remove(keyCode)
+    }
+  }
+
+  func contains(_ keyCode: CGKeyCode) -> Bool {
+    queue.sync {
+      active.contains(keyCode)
     }
   }
 }
@@ -360,7 +429,7 @@ final class KeyEventTap {
   func start() {
     let mask = (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.keyUp.rawValue)
     guard let tap = CGEvent.tapCreate(
-      tap: .cghidEventTap,
+      tap: .cgSessionEventTap,
       place: .headInsertEventTap,
       options: .defaultTap,
       eventsOfInterest: CGEventMask(mask),
@@ -440,6 +509,14 @@ func buildLookup(mapping: DeviceMapping) -> [InputKey: String] {
 
 func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: MacroLibrary, config: DaemonConfig) throws {
   let lookup = buildLookup(mapping: mapping)
+  let mappedUsages: Set<Int> = Set(
+    mapping.inputs.values.compactMap { input in
+      if input.kind == .button, input.hid.usagePage == 7, input.hid.interface != 1 {
+        return input.hid.usage
+      }
+      return nil
+    }
+  )
   let match = HIDMatch(vendorId: mapping.device.vendorId, productId: mapping.device.productId)
   let devices = try HIDEnumerator().openDevices(match: match)
 
@@ -462,7 +539,9 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
   let active = profiles.flatMap { activeProfile(from: $0) }
   let enableOutput = config.enableOutput && active != nil
   let suppressor = EventSuppressor(window: 0.15)
+  let suppressedKeys = SuppressedKeySet()
   var eventTap: KeyEventTap?
+  var tartarusKeyboardType: Int? = config.suppressKeyboardType
   let openOptions = config.seize
     ? IOOptionBits(kIOHIDOptionsTypeSeizeDevice)
     : IOOptionBits(kIOHIDOptionsTypeNone)
@@ -507,6 +586,9 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
     case .disabled:
       return
     case .key:
+      if state == "released" && !config.injectOnRelease {
+        return
+      }
       guard let keyCode = action.keyCode else {
         return
       }
@@ -545,13 +627,48 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
         return Unmanaged.passRetained(event)
       }
 
+      let keyCode = CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode))
+      let keyboardType = Int(event.getIntegerValueField(.keyboardEventKeyboardType))
+      if config.logTapAll {
+        let flags = event.flags
+        let kind = type == .keyDown ? "down" : "up"
+        let sourceTag = event.getIntegerValueField(.eventSourceUserData)
+        let isRepeat = event.getIntegerValueField(.keyboardEventAutorepeat)
+        print("[tap] \(kind) keyCode=\(keyCode) keyboardType=\(keyboardType) flags=\(flags.rawValue) source=\(sourceTag) repeat=\(isRepeat)")
+      }
+
       if event.getIntegerValueField(.eventSourceUserData) == EventInjector.sourceTag {
         return Unmanaged.passRetained(event)
       }
 
-      let keyCode = CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode))
       guard let usage = keyCodeToUsage(keyCode) else {
         return Unmanaged.passRetained(event)
+      }
+
+      if config.logKeyboardType {
+        let flags = event.flags
+        let kind = type == .keyDown ? "down" : "up"
+        print("[tap] \(kind) keyCode=\(keyCode) keyboardType=\(keyboardType) flags=\(flags.rawValue)")
+      }
+
+      if let suppressType = tartarusKeyboardType, keyboardType == suppressType {
+        return nil
+      }
+
+      if tartarusKeyboardType == nil, mappedUsages.contains(usage) {
+        tartarusKeyboardType = keyboardType
+        if config.logKeyboardType || config.logTapAll {
+          print("[tap] learned keyboardType=\(keyboardType) for mapped usage \(usage)")
+        }
+        return nil
+      }
+
+      if config.suppressMapped, suppressedKeys.contains(keyCode) {
+        return nil
+      }
+
+      if config.suppressMapped, suppressor.shouldSuppressKeyCode(keyCode) {
+        return nil
       }
 
       let flags = event.flags
@@ -569,6 +686,15 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
           if suppressor.shouldSuppress(key) {
             return nil
           }
+          let unmodified = InputKey(
+            interface: key.interface,
+            usagePage: key.usagePage,
+            usage: key.usage,
+            modifiers: []
+          )
+          if suppressor.shouldSuppress(unmodified) {
+            return nil
+          }
         }
       }
 
@@ -581,7 +707,7 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
     do {
       try start(openOptions)
     } catch {
-      if config.seize {
+      if config.seize && config.seizeFallback {
         print("Seize failed for an interface (continuing without seize).")
         try start(IOOptionBits(kIOHIDOptionsTypeNone))
       } else {
@@ -682,8 +808,27 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
             layerUsedAsModifier = true
           }
 
+          func recordSuppression(_ key: InputKey) {
+            suppressor.record(key)
+            if !key.modifiers.isEmpty {
+              let unmodified = InputKey(
+                interface: key.interface,
+                usagePage: key.usagePage,
+                usage: key.usage,
+                modifiers: []
+              )
+              suppressor.record(unmodified)
+            }
+            if let keyCode = hidUsageToKeyCode[key.usage] {
+              suppressor.recordKeyCode(keyCode)
+            }
+          }
+
           for key in pressed {
             if let inputId = lookup[key] {
+              if let keyCode = hidUsageToKeyCode[key.usage], config.suppressMapped {
+                suppressedKeys.add(keyCode)
+              }
               let event = InputEvent(
                 inputId: inputId,
                 state: "pressed",
@@ -693,7 +838,7 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
               )
               emit(event)
               if enableOutput {
-                suppressor.record(key)
+                recordSuppression(key)
               }
               handleAction(inputId: inputId, state: "pressed")
             }
@@ -701,6 +846,9 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
 
           for key in released {
             if let inputId = lookup[key] {
+              if let keyCode = hidUsageToKeyCode[key.usage], config.suppressMapped {
+                suppressedKeys.remove(keyCode)
+              }
               let event = InputEvent(
                 inputId: inputId,
                 state: "released",
@@ -710,7 +858,7 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
               )
               emit(event)
               if enableOutput {
-                suppressor.record(key)
+                recordSuppression(key)
               }
               handleAction(inputId: inputId, state: "released")
             }
@@ -784,7 +932,11 @@ func run() -> Int32 {
       print("Output injection disabled.")
     }
     if config.seize {
-      print("Seize mode enabled.")
+      if config.seizeFallback {
+        print("Seize mode enabled (fallback allowed).")
+      } else {
+        print("Seize mode enabled (strict).")
+      }
     }
     try startDaemon(mapping: mapping, profiles: profiles, macros: macros, config: config)
     return 0
