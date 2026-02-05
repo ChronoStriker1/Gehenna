@@ -133,6 +133,19 @@ final class DaemonController: ObservableObject {
     let tail = lines.suffix(200).joined(separator: "\n")
     logText = tail
   }
+
+  func clearLog() {
+    let logURL = FileManager.default
+      .homeDirectoryForCurrentUser
+      .appendingPathComponent("Library/Logs/Gehenna/daemon.log")
+    do {
+      try Data().write(to: logURL, options: .atomic)
+      logText = ""
+      status = "Log cleared."
+    } catch {
+      status = "Failed to clear log: \(error.localizedDescription)"
+    }
+  }
 }
 
 struct DaemonStatus: Codable {
@@ -205,6 +218,9 @@ struct StatusView: View {
         }
         Button("Reload Configs") {
           controller.reloadConfigs()
+        }
+        Button("Clear Log") {
+          controller.clearLog()
         }
         Button("Refresh Status") {
           controller.refreshStatus()
