@@ -29,6 +29,8 @@ sudo chmod 0440 /etc/sudoers.d/gehenna
 /Users/chronostriker1/git/Gehenna/scripts/gehenna-seize.sh
 ```
 
+If you plan to use the launchd plist, install the sudoers rule first so the wrapper can self-sudo.
+
 ## Potential Entitlements
 - If app is sandboxed, evaluate USB/HID entitlements as needed.
 - If not sandboxed, rely on user-granted permissions and code signing.

@@ -28,6 +28,7 @@ User configuration and macros stored in:
 - `docs/permissions.md`
 - `docs/poc.md`
 - `docs/input-map.md`
+- `docs/launchd.md`
 
 ## Configs
 - `configs/tartarus-pro.windows-default.json` (device input map)
@@ -35,7 +36,7 @@ User configuration and macros stored in:
 - `configs/macros.json` (macro library)
 
 ## Status
-Planning and scaffolding.
+Planning and scaffolding. GUI target and launchd scaffold added.
 
 ## Proof of Concept
 Run the HID enumerator to verify device visibility:
@@ -55,4 +56,11 @@ Enable output injection (requires Accessibility permission):
 
 ```bash
 swift run GehennaDaemon --enable-output
+```
+
+## GUI
+Launch the SwiftUI app:
+
+```bash
+swift run GehennaApp
 ```
