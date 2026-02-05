@@ -392,6 +392,11 @@ struct KeymapView: View {
           setActiveProfile()
         }
       }
+      if let config = profilesConfig {
+        Text("Profiles: \(config.profiles.count)")
+          .font(.caption)
+          .foregroundStyle(.secondary)
+      }
     }
   }
 
@@ -402,15 +407,16 @@ struct KeymapView: View {
       let mapping = try loader.load(from: url)
       layoutRows = mapping.layout.rows
       labels = mapping.layout.labels
-      status = "Loaded \(mapping.layout.name)"
+      status = "Loaded mapping: \(mapping.layout.name)"
     } catch {
-      status = "Failed: \(error.localizedDescription)"
+      status = "Mapping error: \(error.localizedDescription)"
     }
   }
 
   private func loadProfiles() {
     let loader = ProfilesLoader()
     let url = profilesURL()
+    ensureProfilesFile(at: url)
     do {
       let config = try loader.load(from: url)
       profilesConfig = config
@@ -419,7 +425,7 @@ struct KeymapView: View {
       }
       status = "Loaded profiles"
     } catch {
-      status = "Failed profiles: \(error.localizedDescription)"
+      status = "Profiles error: \(error.localizedDescription)"
     }
   }
 
@@ -433,6 +439,18 @@ struct KeymapView: View {
       }
     }
     return repoRoot().appendingPathComponent("configs/profiles.json")
+  }
+
+  private func ensureProfilesFile(at url: URL) {
+    let fm = FileManager.default
+    if fm.fileExists(atPath: url.path) {
+      return
+    }
+    let fallback = repoRoot().appendingPathComponent("configs/profiles.json")
+    if fm.fileExists(atPath: fallback.path) {
+      try? fm.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+      try? fm.copyItem(at: fallback, to: url)
+    }
   }
 
   private func writeProfiles(_ config: ProfilesConfig) {
