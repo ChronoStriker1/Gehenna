@@ -1,3 +1,86 @@
 {
-  "macros": []
+  "macros": [
+    {
+      "id": "c67debd7-074b-4776-901d-04d75d76713f",
+      "name": "Undo (Cmd+Z)",
+      "steps": [
+        {
+          "type": "keyDown",
+          "keyCode": 29,
+          "modifiers": [
+            "L-GUI"
+          ]
+        },
+        {
+          "type": "keyUp",
+          "keyCode": 29,
+          "modifiers": [
+            "L-GUI"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "0fc4aa3a-6b68-4443-b6b4-849808fc2291",
+      "name": "Redo (Shift+Cmd+Z)",
+      "steps": [
+        {
+          "type": "keyDown",
+          "keyCode": 29,
+          "modifiers": [
+            "L-GUI",
+            "L-Shift"
+          ]
+        },
+        {
+          "type": "keyUp",
+          "keyCode": 29,
+          "modifiers": [
+            "L-GUI",
+            "L-Shift"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "db4a11f5-9d88-42c9-9327-2067fa10065c",
+      "name": "Free Transform (Cmd+T)",
+      "steps": [
+        {
+          "type": "keyDown",
+          "keyCode": 23,
+          "modifiers": [
+            "L-GUI"
+          ]
+        },
+        {
+          "type": "keyUp",
+          "keyCode": 23,
+          "modifiers": [
+            "L-GUI"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "d669e9e3-4717-4a7d-83df-f7962a4de26e",
+      "name": "New Layer via Copy (Cmd+J)",
+      "steps": [
+        {
+          "type": "keyDown",
+          "keyCode": 13,
+          "modifiers": [
+            "L-GUI"
+          ]
+        },
+        {
+          "type": "keyUp",
+          "keyCode": 13,
+          "modifiers": [
+            "L-GUI"
+          ]
+        }
+      ]
+    }
+  ]
 }
