@@ -513,6 +513,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     } else {
       profileMenuItem?.title = "Profile: (none)"
     }
+    updateStatusIcon(isRunning: controller.isRunning)
+  }
+
+  private func updateStatusIcon(isRunning: Bool) {
+    let symbolName = isRunning ? "square.grid.3x3.fill" : "square.grid.3x3"
+    if let image = NSImage(systemSymbolName: symbolName, accessibilityDescription: "Gehenna") {
+      image.isTemplate = true
+      statusItem?.button?.image = image
+      statusItem?.button?.title = ""
+    } else {
+      statusItem?.button?.title = "G"
+    }
   }
 }
 
