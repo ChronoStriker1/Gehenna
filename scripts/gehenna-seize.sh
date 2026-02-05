@@ -23,6 +23,7 @@ fi
 
 cd "$ROOT_DIR"
 mkdir -p "$LOG_DIR"
+ : > "$LOG_FILE"
 
 if [ -x "$BIN_PATH" ]; then
   exec sh -c "\"$BIN_PATH\" --enable-output --seize \"$@\" 2>&1 | tee -a \"$LOG_FILE\""

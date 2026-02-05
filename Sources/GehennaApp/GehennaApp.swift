@@ -81,9 +81,9 @@ final class DaemonController: ObservableObject {
   }
 
   func reloadConfigs() {
+    let scriptURL = repoRoot().appendingPathComponent("scripts/gehenna-reload.sh")
     let process = Process()
-    process.executableURL = URL(fileURLWithPath: "/usr/bin/pkill")
-    process.arguments = ["-USR1", "-f", "GehennaDaemon"]
+    process.executableURL = scriptURL
     do {
       try process.run()
       status = "Reload signal sent."

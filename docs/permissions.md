@@ -46,6 +46,13 @@ sudo sh -c 'printf "%s\n" "Defaults:chronostriker1 !requiretty" >> /etc/sudoers.
 sudo chmod 0440 /etc/sudoers.d/gehenna
 ```
 
+For the Reload Configs button, allow the reload script too:
+
+```
+sudo sh -c 'printf "%s\n" "chronostriker1 ALL=(root) NOPASSWD: /Users/chronostriker1/git/Gehenna/scripts/gehenna-reload.sh" >> /etc/sudoers.d/gehenna'
+sudo chmod 0440 /etc/sudoers.d/gehenna
+```
+
 ## Potential Entitlements
 - If app is sandboxed, evaluate USB/HID entitlements as needed.
 - If not sandboxed, rely on user-granted permissions and code signing.
