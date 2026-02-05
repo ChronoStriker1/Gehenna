@@ -35,24 +35,24 @@ struct InputEvent {
 
 final class RuntimeState: @unchecked Sendable {
   private let queue = DispatchQueue(label: "gehenna.runtime")
-  private var activeProfile: LayeredProfile?
+  private var profilesConfig: ProfilesConfig?
   private var macroLookup: [UUID: Macro]
 
-  init(activeProfile: LayeredProfile?, macroLookup: [UUID: Macro]) {
-    self.activeProfile = activeProfile
+  init(profilesConfig: ProfilesConfig?, macroLookup: [UUID: Macro]) {
+    self.profilesConfig = profilesConfig
     self.macroLookup = macroLookup
   }
 
-  func update(activeProfile: LayeredProfile?, macroLookup: [UUID: Macro]) {
+  func update(profilesConfig: ProfilesConfig?, macroLookup: [UUID: Macro]) {
     queue.sync {
-      self.activeProfile = activeProfile
+      self.profilesConfig = profilesConfig
       self.macroLookup = macroLookup
     }
   }
 
-  func snapshot() -> (LayeredProfile?, [UUID: Macro]) {
+  func snapshot() -> (ProfilesConfig?, [UUID: Macro]) {
     queue.sync {
-      (activeProfile, macroLookup)
+      (profilesConfig, macroLookup)
     }
   }
 }
@@ -64,6 +64,7 @@ struct DaemonStatus: Codable {
   let layer: Int
   let layerModifier: Bool
   let profileName: String?
+  let bundleId: String?
   let lastEvent: String?
   let updatedAt: String
 }
@@ -328,6 +329,50 @@ func writeStatus(_ status: DaemonStatus) {
   } catch {
     try? data.write(to: url, options: .atomic)
   }
+}
+
+func activeBundleIdURL() -> URL? {
+  let fm = FileManager.default
+  if let sudoUser = ProcessInfo.processInfo.environment["SUDO_USER"],
+     let pw = getpwnam(sudoUser) {
+    let home = String(cString: pw.pointee.pw_dir)
+    let base = URL(fileURLWithPath: home)
+      .appendingPathComponent("Library", isDirectory: true)
+      .appendingPathComponent("Application Support", isDirectory: true)
+    let dir = base.appendingPathComponent("Gehenna", isDirectory: true)
+    try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
+    return dir.appendingPathComponent("active-app.txt")
+  }
+
+  guard let appSupport = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
+    return nil
+  }
+  let dir = appSupport.appendingPathComponent("Gehenna", isDirectory: true)
+  try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
+  return dir.appendingPathComponent("active-app.txt")
+}
+
+func readActiveBundleId() -> String? {
+  guard let url = activeBundleIdURL(),
+        let data = try? Data(contentsOf: url),
+        let raw = String(data: data, encoding: .utf8) else {
+    return nil
+  }
+  let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
+  return trimmed.isEmpty ? nil : trimmed
+}
+
+func resolveProfile(config: ProfilesConfig?, bundleId: String?) -> LayeredProfile? {
+  guard let config else { return nil }
+  if let bundleId,
+     let perApp = config.profiles.first(where: { $0.perAppBundleId == bundleId }) {
+    return perApp
+  }
+  if let activeId = config.activeProfileId,
+     let active = config.profiles.first(where: { $0.id == activeId }) {
+    return active
+  }
+  return config.profiles.first
 }
 
 func loadMapping(config: DaemonConfig) throws -> DeviceMapping {
@@ -604,9 +649,8 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
   let injector = EventInjector()
   let macroRunner = MacroRunner(injector: injector)
   let macroLookup = Dictionary(uniqueKeysWithValues: macros.macros.map { ($0.id, $0) })
-  let active = profiles.flatMap { activeProfile(from: $0) }
-  let runtime = RuntimeState(activeProfile: active, macroLookup: macroLookup)
-  let enableOutput = config.enableOutput && active != nil
+  let runtime = RuntimeState(profilesConfig: profiles, macroLookup: macroLookup)
+  let enableOutput = config.enableOutput && profiles != nil
   let suppressor = EventSuppressor(window: 0.15)
   let suppressedKeys = SuppressedKeySet()
   var eventTap: KeyEventTap?
@@ -615,12 +659,14 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
     ? IOOptionBits(kIOHIDOptionsTypeSeizeDevice)
     : IOOptionBits(kIOHIDOptionsTypeNone)
 
-  if config.enableOutput && active == nil {
+  if config.enableOutput && profiles == nil {
     print("Output enabled but no profiles loaded. Output will remain disabled.")
   }
 
   func publishStatus(lastEvent: String?) {
-    let (profile, _) = runtime.snapshot()
+    let (profilesConfig, _) = runtime.snapshot()
+    let bundleId = readActiveBundleId()
+    let profile = resolveProfile(config: profilesConfig, bundleId: bundleId)
     let status = DaemonStatus(
       pid: Int(getpid()),
       deviceName: mapping.device.name,
@@ -628,6 +674,7 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
       layer: currentLayer,
       layerModifier: layerHoldActive,
       profileName: profile?.name,
+      bundleId: bundleId,
       lastEvent: lastEvent,
       updatedAt: ISO8601DateFormatter().string(from: Date())
     )
@@ -667,8 +714,9 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
   }
 
   func handleAction(inputId: String, state: String) {
-    let (profile, macroLookup) = runtime.snapshot()
-    guard enableOutput, let profile else {
+    let (profilesConfig, macroLookup) = runtime.snapshot()
+    let bundleId = readActiveBundleId()
+    guard enableOutput, let profile = resolveProfile(config: profilesConfig, bundleId: bundleId) else {
       return
     }
 
@@ -982,9 +1030,8 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
   reloadSource.setEventHandler {
     let profiles = try? loadProfiles(config: config)
     let macros = (try? loadMacros(config: config)) ?? MacroLibrary(macros: [])
-    let updatedProfile = profiles.flatMap { activeProfile(from: $0) }
     let updatedMacros = Dictionary(uniqueKeysWithValues: macros.macros.map { ($0.id, $0) })
-    runtime.update(activeProfile: updatedProfile, macroLookup: updatedMacros)
+    runtime.update(profilesConfig: profiles, macroLookup: updatedMacros)
     print("[reload] profiles and macros reloaded")
     publishStatus(lastEvent: "reloaded profiles/macros")
   }

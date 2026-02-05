@@ -44,6 +44,7 @@ final class DaemonController: ObservableObject {
       DispatchQueue.main.async {
         self?.refreshStatus()
         self?.refreshLog()
+        self?.updateActiveBundleId()
       }
     }
   }
@@ -129,6 +130,22 @@ final class DaemonController: ObservableObject {
     }
   }
 
+  func updateActiveBundleId() {
+    guard let bundleId = NSWorkspace.shared.frontmostApplication?.bundleIdentifier else {
+      return
+    }
+    let fm = FileManager.default
+    guard let appSupport = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
+      return
+    }
+    let dir = appSupport.appendingPathComponent("Gehenna", isDirectory: true)
+    try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
+    let url = dir.appendingPathComponent("active-app.txt")
+    if let data = bundleId.data(using: .utf8) {
+      try? data.write(to: url, options: .atomic)
+    }
+  }
+
   func refreshLog() {
     let logURL = FileManager.default
       .homeDirectoryForCurrentUser
@@ -164,6 +181,7 @@ struct DaemonStatus: Codable {
   let layer: Int
   let layerModifier: Bool
   let profileName: String?
+  let bundleId: String?
   let lastEvent: String?
   let updatedAt: String
 }
@@ -298,6 +316,7 @@ struct KeymapView: View {
   @State private var mappingStatus = "Not loaded"
   @State private var profilesStatus = "Not loaded"
   @State private var profilesConfig: ProfilesConfig?
+  @State private var macrosLookup: [UUID: Macro] = [:]
   @State private var selectedProfileId: UUID?
   @State private var selectedLayer = "1"
   @State private var editingKeyId: String?
@@ -347,6 +366,7 @@ struct KeymapView: View {
     .onAppear {
       loadMapping()
       loadProfiles()
+      loadMacros()
     }
     .sheet(isPresented: $showEditor) {
       if let keyId = editingKeyId {
@@ -372,6 +392,9 @@ struct KeymapView: View {
         }
         Button("Reload Profiles") {
           loadProfiles()
+        }
+        Button("Reload Macros") {
+          loadMacros()
         }
         Text(mappingStatus)
           .foregroundStyle(.secondary)
@@ -494,6 +517,29 @@ struct KeymapView: View {
     return config.profiles.first
   }
 
+  private func loadMacros() {
+    let loader = MacroLibraryLoader()
+    let url = macrosURL()
+    do {
+      let library = try loader.load(from: url)
+      macrosLookup = Dictionary(uniqueKeysWithValues: library.macros.map { ($0.id, $0) })
+    } catch {
+      // leave lookup empty if missing
+    }
+  }
+
+  private func macrosURL() -> URL {
+    let fm = FileManager.default
+    if let appSupport = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
+      let path = appSupport.appendingPathComponent("Gehenna", isDirectory: true)
+        .appendingPathComponent("macros.json")
+      if fm.fileExists(atPath: path.path) {
+        return path
+      }
+    }
+    return repoRoot().appendingPathComponent("configs/macros.json")
+  }
+
   private func actionDescription(for keyId: String) -> String {
     guard let profile = currentProfile(),
           let layer = profile.layers[selectedLayer],
@@ -511,6 +557,9 @@ struct KeymapView: View {
       }
       return "\(mods)+\(code)"
     case .macro:
+      if let macroId = action.macroId, let macro = macrosLookup[macroId] {
+        return "Macro: \(macro.name)"
+      }
       return "Macro"
     }
   }
