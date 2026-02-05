@@ -8,7 +8,11 @@ BUILD_DIR="$ROOT_DIR/.build/arm64-apple-macosx/debug"
 BIN_PATH="$BUILD_DIR/GehennaDaemon"
 
 if [ "$(id -u)" -ne 0 ]; then
-  exec sudo "$0" "$@"
+  if sudo -n true 2>/dev/null; then
+    exec sudo -n "$0" "$@"
+  fi
+  echo "sudo required: run 'sudo $0' once or add a sudoers rule."
+  exit 1
 fi
 
 cd "$ROOT_DIR"
