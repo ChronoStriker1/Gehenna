@@ -5,18 +5,15 @@ This app ships a launchd plist for auto-starting the daemon at login.
 ## Install
 1. Edit the plist to use your local paths:
    - `launchd/com.gehenna.daemon.plist`
-2. Copy it to your LaunchAgents directory:
+2. Run the install script:
 
 ```
-mkdir -p ~/Library/LaunchAgents
-cp /Users/chronostriker1/git/Gehenna/launchd/com.gehenna.daemon.plist ~/Library/LaunchAgents/
-launchctl load ~/Library/LaunchAgents/com.gehenna.daemon.plist
+./scripts/launchd-install.sh
 ```
 
 ## Uninstall
 ```
-launchctl unload ~/Library/LaunchAgents/com.gehenna.daemon.plist
-rm ~/Library/LaunchAgents/com.gehenna.daemon.plist
+./scripts/launchd-uninstall.sh
 ```
 
 ## Notes

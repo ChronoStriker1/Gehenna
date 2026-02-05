@@ -64,3 +64,11 @@ Launch the SwiftUI app:
 ```bash
 swift run GehennaApp
 ```
+
+## LaunchAgent
+Install or remove the login daemon:
+
+```bash
+./scripts/launchd-install.sh
+./scripts/launchd-uninstall.sh
+```
