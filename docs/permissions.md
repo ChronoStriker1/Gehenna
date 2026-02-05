@@ -38,6 +38,14 @@ sudo sh -c 'printf "%s\n" "chronostriker1 ALL=(root) NOPASSWD: /Users/chronostri
 sudo chmod 0440 /etc/sudoers.d/gehenna
 ```
 
+If the GUI still reports sudo is required, add this line to the same sudoers file to allow
+non-TTY sudo from the app:
+
+```
+sudo sh -c 'printf "%s\n" "Defaults:chronostriker1 !requiretty" >> /etc/sudoers.d/gehenna'
+sudo chmod 0440 /etc/sudoers.d/gehenna
+```
+
 ## Potential Entitlements
 - If app is sandboxed, evaluate USB/HID entitlements as needed.
 - If not sandboxed, rely on user-granted permissions and code signing.
