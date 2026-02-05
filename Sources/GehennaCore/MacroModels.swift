@@ -43,6 +43,7 @@ public struct MacroLibrary: Sendable, Codable, Equatable {
 public enum ActionType: String, Codable, Sendable {
   case key
   case macro
+  case scroll
   case disabled
 }
 
@@ -51,12 +52,20 @@ public struct Action: Sendable, Codable, Equatable {
   public let keyCode: Int?
   public let modifiers: [HIDModifier]?
   public let macroId: UUID?
+  public let scrollMultiplier: Int?
 
-  public init(type: ActionType, keyCode: Int? = nil, modifiers: [HIDModifier]? = nil, macroId: UUID? = nil) {
+  public init(
+    type: ActionType,
+    keyCode: Int? = nil,
+    modifiers: [HIDModifier]? = nil,
+    macroId: UUID? = nil,
+    scrollMultiplier: Int? = nil
+  ) {
     self.type = type
     self.keyCode = keyCode
     self.modifiers = modifiers
     self.macroId = macroId
+    self.scrollMultiplier = scrollMultiplier
   }
 }
 

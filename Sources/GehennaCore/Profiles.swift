@@ -4,19 +4,27 @@ public struct LayeredProfile: Sendable, Codable, Equatable {
   public let id: UUID
   public let name: String
   public let perAppBundleId: String?
+  public let dpadMode: DPadMode?
   public let layers: [String: [String: Action]]
 
   public init(
     id: UUID,
     name: String,
     perAppBundleId: String? = nil,
+    dpadMode: DPadMode? = nil,
     layers: [String: [String: Action]]
   ) {
     self.id = id
     self.name = name
     self.perAppBundleId = perAppBundleId
+    self.dpadMode = dpadMode
     self.layers = layers
   }
+}
+
+public enum DPadMode: String, Codable, Sendable, CaseIterable {
+  case fourWay = "fourWay"
+  case eightWay = "eightWay"
 }
 
 public struct ProfilesConfig: Sendable, Codable, Equatable {

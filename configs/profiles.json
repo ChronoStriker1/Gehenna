@@ -127,6 +127,31 @@
             "type": "key",
             "keyCode": 79,
             "modifiers": []
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
           }
         },
         "2": {
@@ -249,6 +274,31 @@
             "type": "key",
             "keyCode": 79,
             "modifiers": []
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
           }
         },
         "3": {
@@ -371,9 +421,35 @@
             "type": "key",
             "keyCode": 79,
             "modifiers": []
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
           }
         }
-      }
+      },
+      "dpadMode": "fourWay"
     },
     {
       "id": "ce127d21-7d1f-44c8-8c8e-41947ccd7f71",
@@ -483,27 +559,52 @@
           },
           "dpad.up": {
             "type": "key",
-            "keyCode": 48,
-            "modifiers": []
+            "keyCode": 47,
+            "modifiers": [
+              "L-Shift"
+            ]
           },
           "dpad.down": {
             "type": "key",
-            "keyCode": 47,
-            "modifiers": []
+            "keyCode": 48,
+            "modifiers": [
+              "L-Shift"
+            ]
           },
           "dpad.left": {
             "type": "key",
             "keyCode": 47,
-            "modifiers": [
-              "L-Shift"
-            ]
+            "modifiers": []
           },
           "dpad.right": {
             "type": "key",
             "keyCode": 48,
-            "modifiers": [
-              "L-Shift"
-            ]
+            "modifiers": []
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
           }
         },
         "2": {
@@ -609,27 +710,52 @@
           },
           "dpad.up": {
             "type": "key",
-            "keyCode": 48,
-            "modifiers": []
+            "keyCode": 47,
+            "modifiers": [
+              "L-Shift"
+            ]
           },
           "dpad.down": {
             "type": "key",
-            "keyCode": 47,
-            "modifiers": []
+            "keyCode": 48,
+            "modifiers": [
+              "L-Shift"
+            ]
           },
           "dpad.left": {
             "type": "key",
             "keyCode": 47,
-            "modifiers": [
-              "L-Shift"
-            ]
+            "modifiers": []
           },
           "dpad.right": {
             "type": "key",
             "keyCode": 48,
-            "modifiers": [
-              "L-Shift"
-            ]
+            "modifiers": []
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
           }
         },
         "3": {
@@ -735,30 +861,5396 @@
           },
           "dpad.up": {
             "type": "key",
+            "keyCode": 47,
+            "modifiers": [
+              "L-Shift"
+            ]
+          },
+          "dpad.down": {
+            "type": "key",
             "keyCode": 48,
+            "modifiers": [
+              "L-Shift"
+            ]
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 47,
+            "modifiers": []
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 48,
+            "modifiers": []
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        }
+      },
+      "dpadMode": "fourWay"
+    },
+    {
+      "id": "8b68c1e3-5216-4400-99e1-197d54173595",
+      "name": "Safari",
+      "perAppBundleId": "com.apple.Safari",
+      "layers": {
+        "1": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 75,
             "modifiers": []
           },
           "dpad.down": {
             "type": "key",
-            "keyCode": 47,
+            "keyCode": 78,
             "modifiers": []
+          },
+          "dpad.left": {
+            "type": "macro",
+            "macroId": "28d56834-5096-4ac4-adca-abd5e4d633c9"
+          },
+          "dpad.right": {
+            "type": "macro",
+            "macroId": "3621cf16-0f9d-431a-a38b-f8724e6c4994"
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "macro",
+            "macroId": "96cf3cca-b13c-4dd5-8565-206eeabf7b72"
+          }
+        },
+        "2": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 75,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 78,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "macro",
+            "macroId": "28d56834-5096-4ac4-adca-abd5e4d633c9"
+          },
+          "dpad.right": {
+            "type": "macro",
+            "macroId": "3621cf16-0f9d-431a-a38b-f8724e6c4994"
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "macro",
+            "macroId": "96cf3cca-b13c-4dd5-8565-206eeabf7b72"
+          }
+        },
+        "3": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 75,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 78,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "macro",
+            "macroId": "28d56834-5096-4ac4-adca-abd5e4d633c9"
+          },
+          "dpad.right": {
+            "type": "macro",
+            "macroId": "3621cf16-0f9d-431a-a38b-f8724e6c4994"
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "macro",
+            "macroId": "96cf3cca-b13c-4dd5-8565-206eeabf7b72"
+          }
+        }
+      },
+      "dpadMode": "fourWay"
+    },
+    {
+      "id": "375c6afc-0dec-453f-a2eb-b981bab153f8",
+      "name": "Brave",
+      "perAppBundleId": "com.brave.Browser",
+      "layers": {
+        "1": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 75,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 78,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "macro",
+            "macroId": "28d56834-5096-4ac4-adca-abd5e4d633c9"
+          },
+          "dpad.right": {
+            "type": "macro",
+            "macroId": "3621cf16-0f9d-431a-a38b-f8724e6c4994"
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "macro",
+            "macroId": "96cf3cca-b13c-4dd5-8565-206eeabf7b72"
+          }
+        },
+        "2": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 75,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 78,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "macro",
+            "macroId": "28d56834-5096-4ac4-adca-abd5e4d633c9"
+          },
+          "dpad.right": {
+            "type": "macro",
+            "macroId": "3621cf16-0f9d-431a-a38b-f8724e6c4994"
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "macro",
+            "macroId": "96cf3cca-b13c-4dd5-8565-206eeabf7b72"
+          }
+        },
+        "3": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 75,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 78,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "macro",
+            "macroId": "28d56834-5096-4ac4-adca-abd5e4d633c9"
+          },
+          "dpad.right": {
+            "type": "macro",
+            "macroId": "3621cf16-0f9d-431a-a38b-f8724e6c4994"
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "macro",
+            "macroId": "96cf3cca-b13c-4dd5-8565-206eeabf7b72"
+          }
+        }
+      },
+      "dpadMode": "fourWay"
+    },
+    {
+      "id": "7520f41d-54c7-4310-b393-56aa3d0a4f5c",
+      "name": "Mail",
+      "perAppBundleId": "com.apple.mail",
+      "layers": {
+        "1": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "macro",
+            "macroId": "83a9b97a-6f29-475d-bfb5-c6c9196f834f"
+          },
+          "dpad.right": {
+            "type": "macro",
+            "macroId": "f7a21e97-127e-4295-b0c4-81bd48ccb636"
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        },
+        "2": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "macro",
+            "macroId": "83a9b97a-6f29-475d-bfb5-c6c9196f834f"
+          },
+          "dpad.right": {
+            "type": "macro",
+            "macroId": "f7a21e97-127e-4295-b0c4-81bd48ccb636"
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        },
+        "3": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "macro",
+            "macroId": "83a9b97a-6f29-475d-bfb5-c6c9196f834f"
+          },
+          "dpad.right": {
+            "type": "macro",
+            "macroId": "f7a21e97-127e-4295-b0c4-81bd48ccb636"
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        }
+      },
+      "dpadMode": "fourWay"
+    },
+    {
+      "id": "63df10e4-ffb7-4251-8435-f5d5a52d0ce8",
+      "name": "Finder",
+      "perAppBundleId": "com.apple.finder",
+      "layers": {
+        "1": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": [
+              "L-GUI"
+            ]
           },
           "dpad.left": {
             "type": "key",
             "keyCode": 47,
             "modifiers": [
-              "L-Shift"
+              "L-GUI"
             ]
           },
           "dpad.right": {
             "type": "key",
             "keyCode": 48,
             "modifiers": [
-              "L-Shift"
+              "L-GUI"
             ]
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        },
+        "2": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 47,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 48,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        },
+        "3": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 47,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 48,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
           }
         }
-      }
+      },
+      "dpadMode": "fourWay"
+    },
+    {
+      "id": "1a04c9cc-6fa0-4a01-9a74-c97b3b4529da",
+      "name": "Notes",
+      "perAppBundleId": "com.apple.Notes",
+      "layers": {
+        "1": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 47,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 48,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        },
+        "2": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 47,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 48,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        },
+        "3": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 47,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 48,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        }
+      },
+      "dpadMode": "fourWay"
+    },
+    {
+      "id": "42b8fc65-d0f2-420d-b214-c2b5373edbd8",
+      "name": "Calendar",
+      "perAppBundleId": "com.apple.iCal",
+      "layers": {
+        "1": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "macro",
+            "macroId": "150228e2-f9a9-4e01-b90f-76eb27173a2c"
+          },
+          "dpad.down": {
+            "type": "macro",
+            "macroId": "9f3df6ae-2ff9-4455-a271-aab7c353c63d"
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 80,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 79,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        },
+        "2": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "macro",
+            "macroId": "150228e2-f9a9-4e01-b90f-76eb27173a2c"
+          },
+          "dpad.down": {
+            "type": "macro",
+            "macroId": "9f3df6ae-2ff9-4455-a271-aab7c353c63d"
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 80,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 79,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        },
+        "3": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "macro",
+            "macroId": "150228e2-f9a9-4e01-b90f-76eb27173a2c"
+          },
+          "dpad.down": {
+            "type": "macro",
+            "macroId": "9f3df6ae-2ff9-4455-a271-aab7c353c63d"
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 80,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 79,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        }
+      },
+      "dpadMode": "fourWay"
+    },
+    {
+      "id": "a540a0d6-5a7e-49fc-99ea-e1f81600644d",
+      "name": "Messages",
+      "perAppBundleId": "com.apple.iChat",
+      "layers": {
+        "1": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        },
+        "2": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        },
+        "3": {
+          "k01": {
+            "type": "key",
+            "keyCode": 30,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 31,
+            "modifiers": []
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 32,
+            "modifiers": []
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 33,
+            "modifiers": []
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 34,
+            "modifiers": []
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "key",
+            "keyCode": 20,
+            "modifiers": []
+          },
+          "k08": {
+            "type": "key",
+            "keyCode": 26,
+            "modifiers": []
+          },
+          "k09": {
+            "type": "key",
+            "keyCode": 8,
+            "modifiers": []
+          },
+          "k10": {
+            "type": "key",
+            "keyCode": 21,
+            "modifiers": []
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 57,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        }
+      },
+      "dpadMode": "fourWay"
+    },
+    {
+      "id": "10739001-bf93-4bd2-84f7-46427823f8d9",
+      "name": "Terminal",
+      "perAppBundleId": "com.apple.Terminal",
+      "layers": {
+        "1": {
+          "k01": {
+            "type": "macro",
+            "macroId": "a9e37101-cb11-43f1-83ad-46a227b66eab"
+          },
+          "k02": {
+            "type": "macro",
+            "macroId": "9314f7f2-fb3b-4d7b-bcb3-6de850f0620d"
+          },
+          "k03": {
+            "type": "macro",
+            "macroId": "f6f8143a-b642-4bfb-bce3-b32864ebddd6"
+          },
+          "k04": {
+            "type": "macro",
+            "macroId": "cd7ad269-df54-4d4c-b5af-6d136880ffc1"
+          },
+          "k05": {
+            "type": "macro",
+            "macroId": "80fb5096-5a94-49f1-9897-5ef93a4bdb04"
+          },
+          "k06": {
+            "type": "macro",
+            "macroId": "8e9c2cf8-ecc7-49f7-95bd-250f46425280"
+          },
+          "k07": {
+            "type": "macro",
+            "macroId": "4f790199-0eb2-4328-8e31-7245d546051b"
+          },
+          "k08": {
+            "type": "macro",
+            "macroId": "657a59bf-d883-4547-87e6-c82e1590c6c1"
+          },
+          "k09": {
+            "type": "macro",
+            "macroId": "48562b35-d72b-40b5-868e-4729de24f559"
+          },
+          "k10": {
+            "type": "macro",
+            "macroId": "ce6788ed-3e35-4c74-b597-15d4ac7d1164"
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 41,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "macro",
+            "macroId": "da3964a8-215c-4bb2-b7bc-63f2f6cba67f"
+          },
+          "k13": {
+            "type": "macro",
+            "macroId": "cf6b7cdb-7f84-499a-996b-53c5b38c2f59"
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 45,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 46,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "macro",
+            "macroId": "0507b6c6-b5c0-4fb3-8d59-acbe53284bfa"
+          },
+          "k18": {
+            "type": "macro",
+            "macroId": "40f04fb8-534d-43fe-87dc-18ec831733c5"
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 40,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 80,
+            "modifiers": [
+              "L-Alt"
+            ]
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 79,
+            "modifiers": [
+              "L-Alt"
+            ]
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        },
+        "2": {
+          "k01": {
+            "type": "macro",
+            "macroId": "a9e37101-cb11-43f1-83ad-46a227b66eab"
+          },
+          "k02": {
+            "type": "macro",
+            "macroId": "9314f7f2-fb3b-4d7b-bcb3-6de850f0620d"
+          },
+          "k03": {
+            "type": "macro",
+            "macroId": "f6f8143a-b642-4bfb-bce3-b32864ebddd6"
+          },
+          "k04": {
+            "type": "macro",
+            "macroId": "cd7ad269-df54-4d4c-b5af-6d136880ffc1"
+          },
+          "k05": {
+            "type": "macro",
+            "macroId": "80fb5096-5a94-49f1-9897-5ef93a4bdb04"
+          },
+          "k06": {
+            "type": "macro",
+            "macroId": "8e9c2cf8-ecc7-49f7-95bd-250f46425280"
+          },
+          "k07": {
+            "type": "macro",
+            "macroId": "4f790199-0eb2-4328-8e31-7245d546051b"
+          },
+          "k08": {
+            "type": "macro",
+            "macroId": "657a59bf-d883-4547-87e6-c82e1590c6c1"
+          },
+          "k09": {
+            "type": "macro",
+            "macroId": "48562b35-d72b-40b5-868e-4729de24f559"
+          },
+          "k10": {
+            "type": "macro",
+            "macroId": "ce6788ed-3e35-4c74-b597-15d4ac7d1164"
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 41,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "macro",
+            "macroId": "da3964a8-215c-4bb2-b7bc-63f2f6cba67f"
+          },
+          "k13": {
+            "type": "macro",
+            "macroId": "cf6b7cdb-7f84-499a-996b-53c5b38c2f59"
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 45,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 46,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "macro",
+            "macroId": "0507b6c6-b5c0-4fb3-8d59-acbe53284bfa"
+          },
+          "k18": {
+            "type": "macro",
+            "macroId": "40f04fb8-534d-43fe-87dc-18ec831733c5"
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 40,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 80,
+            "modifiers": [
+              "L-Alt"
+            ]
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 79,
+            "modifiers": [
+              "L-Alt"
+            ]
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        },
+        "3": {
+          "k01": {
+            "type": "macro",
+            "macroId": "a9e37101-cb11-43f1-83ad-46a227b66eab"
+          },
+          "k02": {
+            "type": "macro",
+            "macroId": "9314f7f2-fb3b-4d7b-bcb3-6de850f0620d"
+          },
+          "k03": {
+            "type": "macro",
+            "macroId": "f6f8143a-b642-4bfb-bce3-b32864ebddd6"
+          },
+          "k04": {
+            "type": "macro",
+            "macroId": "cd7ad269-df54-4d4c-b5af-6d136880ffc1"
+          },
+          "k05": {
+            "type": "macro",
+            "macroId": "80fb5096-5a94-49f1-9897-5ef93a4bdb04"
+          },
+          "k06": {
+            "type": "macro",
+            "macroId": "8e9c2cf8-ecc7-49f7-95bd-250f46425280"
+          },
+          "k07": {
+            "type": "macro",
+            "macroId": "4f790199-0eb2-4328-8e31-7245d546051b"
+          },
+          "k08": {
+            "type": "macro",
+            "macroId": "657a59bf-d883-4547-87e6-c82e1590c6c1"
+          },
+          "k09": {
+            "type": "macro",
+            "macroId": "48562b35-d72b-40b5-868e-4729de24f559"
+          },
+          "k10": {
+            "type": "macro",
+            "macroId": "ce6788ed-3e35-4c74-b597-15d4ac7d1164"
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 41,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "macro",
+            "macroId": "da3964a8-215c-4bb2-b7bc-63f2f6cba67f"
+          },
+          "k13": {
+            "type": "macro",
+            "macroId": "cf6b7cdb-7f84-499a-996b-53c5b38c2f59"
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 45,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 46,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "macro",
+            "macroId": "0507b6c6-b5c0-4fb3-8d59-acbe53284bfa"
+          },
+          "k18": {
+            "type": "macro",
+            "macroId": "40f04fb8-534d-43fe-87dc-18ec831733c5"
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 40,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 80,
+            "modifiers": [
+              "L-Alt"
+            ]
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 79,
+            "modifiers": [
+              "L-Alt"
+            ]
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        }
+      },
+      "dpadMode": "fourWay"
+    },
+    {
+      "id": "44bd6351-adba-4743-8fe5-87e6349bce0e",
+      "name": "Ghostty",
+      "perAppBundleId": "com.mitchellh.ghostty",
+      "layers": {
+        "1": {
+          "k01": {
+            "type": "macro",
+            "macroId": "a9e37101-cb11-43f1-83ad-46a227b66eab"
+          },
+          "k02": {
+            "type": "macro",
+            "macroId": "9314f7f2-fb3b-4d7b-bcb3-6de850f0620d"
+          },
+          "k03": {
+            "type": "macro",
+            "macroId": "f6f8143a-b642-4bfb-bce3-b32864ebddd6"
+          },
+          "k04": {
+            "type": "macro",
+            "macroId": "cd7ad269-df54-4d4c-b5af-6d136880ffc1"
+          },
+          "k05": {
+            "type": "macro",
+            "macroId": "80fb5096-5a94-49f1-9897-5ef93a4bdb04"
+          },
+          "k06": {
+            "type": "macro",
+            "macroId": "8e9c2cf8-ecc7-49f7-95bd-250f46425280"
+          },
+          "k07": {
+            "type": "macro",
+            "macroId": "4f790199-0eb2-4328-8e31-7245d546051b"
+          },
+          "k08": {
+            "type": "macro",
+            "macroId": "657a59bf-d883-4547-87e6-c82e1590c6c1"
+          },
+          "k09": {
+            "type": "macro",
+            "macroId": "48562b35-d72b-40b5-868e-4729de24f559"
+          },
+          "k10": {
+            "type": "macro",
+            "macroId": "ce6788ed-3e35-4c74-b597-15d4ac7d1164"
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 41,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "macro",
+            "macroId": "da3964a8-215c-4bb2-b7bc-63f2f6cba67f"
+          },
+          "k13": {
+            "type": "macro",
+            "macroId": "cf6b7cdb-7f84-499a-996b-53c5b38c2f59"
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 45,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 46,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "macro",
+            "macroId": "0507b6c6-b5c0-4fb3-8d59-acbe53284bfa"
+          },
+          "k18": {
+            "type": "macro",
+            "macroId": "40f04fb8-534d-43fe-87dc-18ec831733c5"
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 40,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 80,
+            "modifiers": [
+              "L-Alt"
+            ]
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 79,
+            "modifiers": [
+              "L-Alt"
+            ]
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        },
+        "2": {
+          "k01": {
+            "type": "macro",
+            "macroId": "a9e37101-cb11-43f1-83ad-46a227b66eab"
+          },
+          "k02": {
+            "type": "macro",
+            "macroId": "9314f7f2-fb3b-4d7b-bcb3-6de850f0620d"
+          },
+          "k03": {
+            "type": "macro",
+            "macroId": "f6f8143a-b642-4bfb-bce3-b32864ebddd6"
+          },
+          "k04": {
+            "type": "macro",
+            "macroId": "cd7ad269-df54-4d4c-b5af-6d136880ffc1"
+          },
+          "k05": {
+            "type": "macro",
+            "macroId": "80fb5096-5a94-49f1-9897-5ef93a4bdb04"
+          },
+          "k06": {
+            "type": "macro",
+            "macroId": "8e9c2cf8-ecc7-49f7-95bd-250f46425280"
+          },
+          "k07": {
+            "type": "macro",
+            "macroId": "4f790199-0eb2-4328-8e31-7245d546051b"
+          },
+          "k08": {
+            "type": "macro",
+            "macroId": "657a59bf-d883-4547-87e6-c82e1590c6c1"
+          },
+          "k09": {
+            "type": "macro",
+            "macroId": "48562b35-d72b-40b5-868e-4729de24f559"
+          },
+          "k10": {
+            "type": "macro",
+            "macroId": "ce6788ed-3e35-4c74-b597-15d4ac7d1164"
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 41,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "macro",
+            "macroId": "da3964a8-215c-4bb2-b7bc-63f2f6cba67f"
+          },
+          "k13": {
+            "type": "macro",
+            "macroId": "cf6b7cdb-7f84-499a-996b-53c5b38c2f59"
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 45,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 46,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "macro",
+            "macroId": "0507b6c6-b5c0-4fb3-8d59-acbe53284bfa"
+          },
+          "k18": {
+            "type": "macro",
+            "macroId": "40f04fb8-534d-43fe-87dc-18ec831733c5"
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 40,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 80,
+            "modifiers": [
+              "L-Alt"
+            ]
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 79,
+            "modifiers": [
+              "L-Alt"
+            ]
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        },
+        "3": {
+          "k01": {
+            "type": "macro",
+            "macroId": "a9e37101-cb11-43f1-83ad-46a227b66eab"
+          },
+          "k02": {
+            "type": "macro",
+            "macroId": "9314f7f2-fb3b-4d7b-bcb3-6de850f0620d"
+          },
+          "k03": {
+            "type": "macro",
+            "macroId": "f6f8143a-b642-4bfb-bce3-b32864ebddd6"
+          },
+          "k04": {
+            "type": "macro",
+            "macroId": "cd7ad269-df54-4d4c-b5af-6d136880ffc1"
+          },
+          "k05": {
+            "type": "macro",
+            "macroId": "80fb5096-5a94-49f1-9897-5ef93a4bdb04"
+          },
+          "k06": {
+            "type": "macro",
+            "macroId": "8e9c2cf8-ecc7-49f7-95bd-250f46425280"
+          },
+          "k07": {
+            "type": "macro",
+            "macroId": "4f790199-0eb2-4328-8e31-7245d546051b"
+          },
+          "k08": {
+            "type": "macro",
+            "macroId": "657a59bf-d883-4547-87e6-c82e1590c6c1"
+          },
+          "k09": {
+            "type": "macro",
+            "macroId": "48562b35-d72b-40b5-868e-4729de24f559"
+          },
+          "k10": {
+            "type": "macro",
+            "macroId": "ce6788ed-3e35-4c74-b597-15d4ac7d1164"
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 41,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "macro",
+            "macroId": "da3964a8-215c-4bb2-b7bc-63f2f6cba67f"
+          },
+          "k13": {
+            "type": "macro",
+            "macroId": "cf6b7cdb-7f84-499a-996b-53c5b38c2f59"
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 45,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 46,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "macro",
+            "macroId": "0507b6c6-b5c0-4fb3-8d59-acbe53284bfa"
+          },
+          "k18": {
+            "type": "macro",
+            "macroId": "40f04fb8-534d-43fe-87dc-18ec831733c5"
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 40,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 80,
+            "modifiers": [
+              "L-Alt"
+            ]
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 79,
+            "modifiers": [
+              "L-Alt"
+            ]
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        }
+      },
+      "dpadMode": "fourWay"
+    },
+    {
+      "id": "93c9299d-04c9-4eea-b49c-9662695b768a",
+      "name": "iTerm2",
+      "perAppBundleId": "com.googlecode.iterm2",
+      "layers": {
+        "1": {
+          "k01": {
+            "type": "macro",
+            "macroId": "a9e37101-cb11-43f1-83ad-46a227b66eab"
+          },
+          "k02": {
+            "type": "macro",
+            "macroId": "9314f7f2-fb3b-4d7b-bcb3-6de850f0620d"
+          },
+          "k03": {
+            "type": "macro",
+            "macroId": "f6f8143a-b642-4bfb-bce3-b32864ebddd6"
+          },
+          "k04": {
+            "type": "macro",
+            "macroId": "cd7ad269-df54-4d4c-b5af-6d136880ffc1"
+          },
+          "k05": {
+            "type": "macro",
+            "macroId": "80fb5096-5a94-49f1-9897-5ef93a4bdb04"
+          },
+          "k06": {
+            "type": "macro",
+            "macroId": "8e9c2cf8-ecc7-49f7-95bd-250f46425280"
+          },
+          "k07": {
+            "type": "macro",
+            "macroId": "4f790199-0eb2-4328-8e31-7245d546051b"
+          },
+          "k08": {
+            "type": "macro",
+            "macroId": "657a59bf-d883-4547-87e6-c82e1590c6c1"
+          },
+          "k09": {
+            "type": "macro",
+            "macroId": "48562b35-d72b-40b5-868e-4729de24f559"
+          },
+          "k10": {
+            "type": "macro",
+            "macroId": "ce6788ed-3e35-4c74-b597-15d4ac7d1164"
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 41,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "macro",
+            "macroId": "da3964a8-215c-4bb2-b7bc-63f2f6cba67f"
+          },
+          "k13": {
+            "type": "macro",
+            "macroId": "cf6b7cdb-7f84-499a-996b-53c5b38c2f59"
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 45,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 46,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "macro",
+            "macroId": "0507b6c6-b5c0-4fb3-8d59-acbe53284bfa"
+          },
+          "k18": {
+            "type": "macro",
+            "macroId": "40f04fb8-534d-43fe-87dc-18ec831733c5"
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 40,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 80,
+            "modifiers": [
+              "L-Alt"
+            ]
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 79,
+            "modifiers": [
+              "L-Alt"
+            ]
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        },
+        "2": {
+          "k01": {
+            "type": "macro",
+            "macroId": "a9e37101-cb11-43f1-83ad-46a227b66eab"
+          },
+          "k02": {
+            "type": "macro",
+            "macroId": "9314f7f2-fb3b-4d7b-bcb3-6de850f0620d"
+          },
+          "k03": {
+            "type": "macro",
+            "macroId": "f6f8143a-b642-4bfb-bce3-b32864ebddd6"
+          },
+          "k04": {
+            "type": "macro",
+            "macroId": "cd7ad269-df54-4d4c-b5af-6d136880ffc1"
+          },
+          "k05": {
+            "type": "macro",
+            "macroId": "80fb5096-5a94-49f1-9897-5ef93a4bdb04"
+          },
+          "k06": {
+            "type": "macro",
+            "macroId": "8e9c2cf8-ecc7-49f7-95bd-250f46425280"
+          },
+          "k07": {
+            "type": "macro",
+            "macroId": "4f790199-0eb2-4328-8e31-7245d546051b"
+          },
+          "k08": {
+            "type": "macro",
+            "macroId": "657a59bf-d883-4547-87e6-c82e1590c6c1"
+          },
+          "k09": {
+            "type": "macro",
+            "macroId": "48562b35-d72b-40b5-868e-4729de24f559"
+          },
+          "k10": {
+            "type": "macro",
+            "macroId": "ce6788ed-3e35-4c74-b597-15d4ac7d1164"
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 41,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "macro",
+            "macroId": "da3964a8-215c-4bb2-b7bc-63f2f6cba67f"
+          },
+          "k13": {
+            "type": "macro",
+            "macroId": "cf6b7cdb-7f84-499a-996b-53c5b38c2f59"
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 45,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 46,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "macro",
+            "macroId": "0507b6c6-b5c0-4fb3-8d59-acbe53284bfa"
+          },
+          "k18": {
+            "type": "macro",
+            "macroId": "40f04fb8-534d-43fe-87dc-18ec831733c5"
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 40,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 80,
+            "modifiers": [
+              "L-Alt"
+            ]
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 79,
+            "modifiers": [
+              "L-Alt"
+            ]
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        },
+        "3": {
+          "k01": {
+            "type": "macro",
+            "macroId": "a9e37101-cb11-43f1-83ad-46a227b66eab"
+          },
+          "k02": {
+            "type": "macro",
+            "macroId": "9314f7f2-fb3b-4d7b-bcb3-6de850f0620d"
+          },
+          "k03": {
+            "type": "macro",
+            "macroId": "f6f8143a-b642-4bfb-bce3-b32864ebddd6"
+          },
+          "k04": {
+            "type": "macro",
+            "macroId": "cd7ad269-df54-4d4c-b5af-6d136880ffc1"
+          },
+          "k05": {
+            "type": "macro",
+            "macroId": "80fb5096-5a94-49f1-9897-5ef93a4bdb04"
+          },
+          "k06": {
+            "type": "macro",
+            "macroId": "8e9c2cf8-ecc7-49f7-95bd-250f46425280"
+          },
+          "k07": {
+            "type": "macro",
+            "macroId": "4f790199-0eb2-4328-8e31-7245d546051b"
+          },
+          "k08": {
+            "type": "macro",
+            "macroId": "657a59bf-d883-4547-87e6-c82e1590c6c1"
+          },
+          "k09": {
+            "type": "macro",
+            "macroId": "48562b35-d72b-40b5-868e-4729de24f559"
+          },
+          "k10": {
+            "type": "macro",
+            "macroId": "ce6788ed-3e35-4c74-b597-15d4ac7d1164"
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 41,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "macro",
+            "macroId": "da3964a8-215c-4bb2-b7bc-63f2f6cba67f"
+          },
+          "k13": {
+            "type": "macro",
+            "macroId": "cf6b7cdb-7f84-499a-996b-53c5b38c2f59"
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 45,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 46,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "macro",
+            "macroId": "0507b6c6-b5c0-4fb3-8d59-acbe53284bfa"
+          },
+          "k18": {
+            "type": "macro",
+            "macroId": "40f04fb8-534d-43fe-87dc-18ec831733c5"
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 40,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": []
+          },
+          "dpad.down": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": []
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 80,
+            "modifiers": [
+              "L-Alt"
+            ]
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 79,
+            "modifiers": [
+              "L-Alt"
+            ]
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        }
+      },
+      "dpadMode": "fourWay"
+    },
+    {
+      "id": "ba267ce8-9e81-481c-886b-b4252d47e84f",
+      "name": "Music",
+      "perAppBundleId": "com.apple.Music",
+      "layers": {
+        "1": {
+          "k01": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 79,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 80,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k06": {
+            "type": "macro",
+            "macroId": "6bfecf45-b631-4cde-b274-914a8f4e18b6"
+          },
+          "k07": {
+            "type": "macro",
+            "macroId": "435323d6-3df3-4cac-916a-331a99685e31"
+          },
+          "k08": {
+            "type": "macro",
+            "macroId": "20030ae1-448b-4ac9-8df9-f12a35496613"
+          },
+          "k09": {
+            "type": "macro",
+            "macroId": "b606aaf1-8c44-4c3a-ae99-a45ead4a8cff"
+          },
+          "k10": {
+            "type": "macro",
+            "macroId": "0a1c1138-93be-45ec-9abd-26bf93d7d08c"
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 41,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "macro",
+            "macroId": "f8c0cea9-ffa5-44a0-b38e-b936839d9392"
+          },
+          "dpad.down": {
+            "type": "macro",
+            "macroId": "dc8ec333-ebb5-4042-9abd-4c74812d745c"
+          },
+          "dpad.left": {
+            "type": "macro",
+            "macroId": "76a132a3-fdd0-44f6-8941-f1b5cc6ea10e"
+          },
+          "dpad.right": {
+            "type": "macro",
+            "macroId": "a3d26a31-ab06-4ce1-af4b-c304928ce487"
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        },
+        "2": {
+          "k01": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 79,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 80,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k06": {
+            "type": "macro",
+            "macroId": "6bfecf45-b631-4cde-b274-914a8f4e18b6"
+          },
+          "k07": {
+            "type": "macro",
+            "macroId": "435323d6-3df3-4cac-916a-331a99685e31"
+          },
+          "k08": {
+            "type": "macro",
+            "macroId": "20030ae1-448b-4ac9-8df9-f12a35496613"
+          },
+          "k09": {
+            "type": "macro",
+            "macroId": "b606aaf1-8c44-4c3a-ae99-a45ead4a8cff"
+          },
+          "k10": {
+            "type": "macro",
+            "macroId": "0a1c1138-93be-45ec-9abd-26bf93d7d08c"
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 41,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "macro",
+            "macroId": "f8c0cea9-ffa5-44a0-b38e-b936839d9392"
+          },
+          "dpad.down": {
+            "type": "macro",
+            "macroId": "dc8ec333-ebb5-4042-9abd-4c74812d745c"
+          },
+          "dpad.left": {
+            "type": "macro",
+            "macroId": "76a132a3-fdd0-44f6-8941-f1b5cc6ea10e"
+          },
+          "dpad.right": {
+            "type": "macro",
+            "macroId": "a3d26a31-ab06-4ce1-af4b-c304928ce487"
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        },
+        "3": {
+          "k01": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "k02": {
+            "type": "key",
+            "keyCode": 79,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k03": {
+            "type": "key",
+            "keyCode": 80,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k04": {
+            "type": "key",
+            "keyCode": 82,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k05": {
+            "type": "key",
+            "keyCode": 81,
+            "modifiers": [
+              "L-GUI"
+            ]
+          },
+          "k06": {
+            "type": "macro",
+            "macroId": "6bfecf45-b631-4cde-b274-914a8f4e18b6"
+          },
+          "k07": {
+            "type": "macro",
+            "macroId": "435323d6-3df3-4cac-916a-331a99685e31"
+          },
+          "k08": {
+            "type": "macro",
+            "macroId": "20030ae1-448b-4ac9-8df9-f12a35496613"
+          },
+          "k09": {
+            "type": "macro",
+            "macroId": "b606aaf1-8c44-4c3a-ae99-a45ead4a8cff"
+          },
+          "k10": {
+            "type": "macro",
+            "macroId": "0a1c1138-93be-45ec-9abd-26bf93d7d08c"
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 41,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "key",
+            "keyCode": 4,
+            "modifiers": []
+          },
+          "k13": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": []
+          },
+          "k14": {
+            "type": "key",
+            "keyCode": 7,
+            "modifiers": []
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 9,
+            "modifiers": []
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "macro",
+            "macroId": "f8c0cea9-ffa5-44a0-b38e-b936839d9392"
+          },
+          "dpad.down": {
+            "type": "macro",
+            "macroId": "dc8ec333-ebb5-4042-9abd-4c74812d745c"
+          },
+          "dpad.left": {
+            "type": "macro",
+            "macroId": "76a132a3-fdd0-44f6-8941-f1b5cc6ea10e"
+          },
+          "dpad.right": {
+            "type": "macro",
+            "macroId": "a3d26a31-ab06-4ce1-af4b-c304928ce487"
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        }
+      },
+      "dpadMode": "fourWay"
+    },
+    {
+      "id": "83224af9-513e-4259-9608-e24536246996",
+      "name": "Preview",
+      "perAppBundleId": "com.apple.Preview",
+      "layers": {
+        "1": {
+          "k01": {
+            "type": "macro",
+            "macroId": "5559bf56-ef63-40cd-88fe-d103153b7d53"
+          },
+          "k02": {
+            "type": "macro",
+            "macroId": "20030ae1-448b-4ac9-8df9-f12a35496613"
+          },
+          "k03": {
+            "type": "macro",
+            "macroId": "e24d5b6a-0b0e-49d0-bdf8-151e08d70555"
+          },
+          "k04": {
+            "type": "macro",
+            "macroId": "b606aaf1-8c44-4c3a-ae99-a45ead4a8cff"
+          },
+          "k05": {
+            "type": "macro",
+            "macroId": "6bfecf45-b631-4cde-b274-914a8f4e18b6"
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "macro",
+            "macroId": "4f790199-0eb2-4328-8e31-7245d546051b"
+          },
+          "k08": {
+            "type": "macro",
+            "macroId": "657a59bf-d883-4547-87e6-c82e1590c6c1"
+          },
+          "k09": {
+            "type": "macro",
+            "macroId": "d0ec6494-d450-4576-8699-82974348f250"
+          },
+          "k10": {
+            "type": "macro",
+            "macroId": "ce6788ed-3e35-4c74-b597-15d4ac7d1164"
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 41,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "macro",
+            "macroId": "da3964a8-215c-4bb2-b7bc-63f2f6cba67f"
+          },
+          "k13": {
+            "type": "macro",
+            "macroId": "cf6b7cdb-7f84-499a-996b-53c5b38c2f59"
+          },
+          "k14": {
+            "type": "macro",
+            "macroId": "0a1c1138-93be-45ec-9abd-26bf93d7d08c"
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": [
+              "L-GUI",
+              "L-Shift"
+            ]
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "macro",
+            "macroId": "1ee76952-3a98-4979-8430-a768782b9692"
+          },
+          "dpad.down": {
+            "type": "macro",
+            "macroId": "da936de4-e947-4a56-9389-70eb8c1ba2f4"
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 80,
+            "modifiers": []
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 79,
+            "modifiers": []
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        },
+        "2": {
+          "k01": {
+            "type": "macro",
+            "macroId": "5559bf56-ef63-40cd-88fe-d103153b7d53"
+          },
+          "k02": {
+            "type": "macro",
+            "macroId": "20030ae1-448b-4ac9-8df9-f12a35496613"
+          },
+          "k03": {
+            "type": "macro",
+            "macroId": "e24d5b6a-0b0e-49d0-bdf8-151e08d70555"
+          },
+          "k04": {
+            "type": "macro",
+            "macroId": "b606aaf1-8c44-4c3a-ae99-a45ead4a8cff"
+          },
+          "k05": {
+            "type": "macro",
+            "macroId": "6bfecf45-b631-4cde-b274-914a8f4e18b6"
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "macro",
+            "macroId": "4f790199-0eb2-4328-8e31-7245d546051b"
+          },
+          "k08": {
+            "type": "macro",
+            "macroId": "657a59bf-d883-4547-87e6-c82e1590c6c1"
+          },
+          "k09": {
+            "type": "macro",
+            "macroId": "d0ec6494-d450-4576-8699-82974348f250"
+          },
+          "k10": {
+            "type": "macro",
+            "macroId": "ce6788ed-3e35-4c74-b597-15d4ac7d1164"
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 41,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "macro",
+            "macroId": "da3964a8-215c-4bb2-b7bc-63f2f6cba67f"
+          },
+          "k13": {
+            "type": "macro",
+            "macroId": "cf6b7cdb-7f84-499a-996b-53c5b38c2f59"
+          },
+          "k14": {
+            "type": "macro",
+            "macroId": "0a1c1138-93be-45ec-9abd-26bf93d7d08c"
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": [
+              "L-GUI",
+              "L-Shift"
+            ]
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "macro",
+            "macroId": "1ee76952-3a98-4979-8430-a768782b9692"
+          },
+          "dpad.down": {
+            "type": "macro",
+            "macroId": "da936de4-e947-4a56-9389-70eb8c1ba2f4"
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 80,
+            "modifiers": []
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 79,
+            "modifiers": []
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        },
+        "3": {
+          "k01": {
+            "type": "macro",
+            "macroId": "5559bf56-ef63-40cd-88fe-d103153b7d53"
+          },
+          "k02": {
+            "type": "macro",
+            "macroId": "20030ae1-448b-4ac9-8df9-f12a35496613"
+          },
+          "k03": {
+            "type": "macro",
+            "macroId": "e24d5b6a-0b0e-49d0-bdf8-151e08d70555"
+          },
+          "k04": {
+            "type": "macro",
+            "macroId": "b606aaf1-8c44-4c3a-ae99-a45ead4a8cff"
+          },
+          "k05": {
+            "type": "macro",
+            "macroId": "6bfecf45-b631-4cde-b274-914a8f4e18b6"
+          },
+          "k06": {
+            "type": "key",
+            "keyCode": 43,
+            "modifiers": []
+          },
+          "k07": {
+            "type": "macro",
+            "macroId": "4f790199-0eb2-4328-8e31-7245d546051b"
+          },
+          "k08": {
+            "type": "macro",
+            "macroId": "657a59bf-d883-4547-87e6-c82e1590c6c1"
+          },
+          "k09": {
+            "type": "macro",
+            "macroId": "d0ec6494-d450-4576-8699-82974348f250"
+          },
+          "k10": {
+            "type": "macro",
+            "macroId": "ce6788ed-3e35-4c74-b597-15d4ac7d1164"
+          },
+          "k11": {
+            "type": "key",
+            "keyCode": 41,
+            "modifiers": []
+          },
+          "k12": {
+            "type": "macro",
+            "macroId": "da3964a8-215c-4bb2-b7bc-63f2f6cba67f"
+          },
+          "k13": {
+            "type": "macro",
+            "macroId": "cf6b7cdb-7f84-499a-996b-53c5b38c2f59"
+          },
+          "k14": {
+            "type": "macro",
+            "macroId": "0a1c1138-93be-45ec-9abd-26bf93d7d08c"
+          },
+          "k15": {
+            "type": "key",
+            "keyCode": 22,
+            "modifiers": [
+              "L-GUI",
+              "L-Shift"
+            ]
+          },
+          "k16": {
+            "type": "key",
+            "keyCode": 225,
+            "modifiers": []
+          },
+          "k17": {
+            "type": "key",
+            "keyCode": 29,
+            "modifiers": []
+          },
+          "k18": {
+            "type": "key",
+            "keyCode": 27,
+            "modifiers": []
+          },
+          "k19": {
+            "type": "key",
+            "keyCode": 6,
+            "modifiers": []
+          },
+          "k20": {
+            "type": "key",
+            "keyCode": 44,
+            "modifiers": []
+          },
+          "dpad.up": {
+            "type": "macro",
+            "macroId": "1ee76952-3a98-4979-8430-a768782b9692"
+          },
+          "dpad.down": {
+            "type": "macro",
+            "macroId": "da936de4-e947-4a56-9389-70eb8c1ba2f4"
+          },
+          "dpad.left": {
+            "type": "key",
+            "keyCode": 80,
+            "modifiers": []
+          },
+          "dpad.right": {
+            "type": "key",
+            "keyCode": 79,
+            "modifiers": []
+          },
+          "wheel.scroll": {
+            "type": "scroll",
+            "scrollMultiplier": 1
+          },
+          "dpad.up_left": {
+            "type": "disabled"
+          },
+          "dpad.up_right": {
+            "type": "disabled"
+          },
+          "dpad.down_left": {
+            "type": "disabled"
+          },
+          "dpad.down_right": {
+            "type": "disabled"
+          },
+          "wheel.up": {
+            "type": "disabled"
+          },
+          "wheel.down": {
+            "type": "disabled"
+          },
+          "wheel.click": {
+            "type": "disabled"
+          }
+        }
+      },
+      "dpadMode": "fourWay"
     }
   ]
 }

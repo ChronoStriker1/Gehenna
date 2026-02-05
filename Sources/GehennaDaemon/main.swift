@@ -15,6 +15,7 @@ struct DaemonConfig {
   let logKeyboardType: Bool
   let suppressKeyboardType: Int?
   let logTapAll: Bool
+  let logInputEvents: Bool
   let seizeFallback: Bool
 }
 
@@ -32,6 +33,8 @@ struct InputEvent {
   let layer: Int
   let layerModifier: Bool
 }
+
+_ = signal(SIGPIPE, SIG_IGN)
 
 final class RuntimeState: @unchecked Sendable {
   private let queue = DispatchQueue(label: "gehenna.runtime")
@@ -66,6 +69,8 @@ struct DaemonStatus: Codable {
   let profileName: String?
   let bundleId: String?
   let lastEvent: String?
+  let keymapPopupToken: Int?
+  let keymapPopupVisible: Bool
   let updatedAt: String
 }
 
@@ -181,6 +186,7 @@ func parseArgs() -> DaemonConfig {
   var logKeyboardType = false
   var suppressKeyboardType: Int?
   var logTapAll = false
+  var logInputEvents = false
   var seizeFallback = false
   var index = 0
   while index < args.count {
@@ -221,6 +227,8 @@ func parseArgs() -> DaemonConfig {
       }
     case "--log-tap":
       logTapAll = true
+    case "--log-input":
+      logInputEvents = true
     default:
       break
     }
@@ -238,6 +246,7 @@ func parseArgs() -> DaemonConfig {
     logKeyboardType: logKeyboardType,
     suppressKeyboardType: suppressKeyboardType,
     logTapAll: logTapAll,
+    logInputEvents: logInputEvents,
     seizeFallback: seizeFallback
   )
 }
@@ -317,49 +326,237 @@ func statusFileURL() -> URL? {
   return dir.appendingPathComponent("status.json")
 }
 
-func writeStatus(_ status: DaemonStatus) {
-  guard let url = statusFileURL() else { return }
-  let encoder = JSONEncoder()
-  encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
-  guard let data = try? encoder.encode(status) else { return }
-  let tmp = url.appendingPathExtension("tmp")
-  do {
-    try data.write(to: tmp, options: .atomic)
-    _ = try FileManager.default.replaceItemAt(url, withItemAt: tmp)
-  } catch {
-    try? data.write(to: url, options: .atomic)
+final class StatusPublisher {
+  private let queue = DispatchQueue(label: "gehenna.status.publisher")
+  private var clients: [Int32] = []
+
+  func addClient(_ fd: Int32) {
+    queue.sync {
+      var one: Int32 = 1
+      _ = setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &one, socklen_t(MemoryLayout<Int32>.size))
+      clients.append(fd)
+    }
+  }
+
+  func publish(_ status: DaemonStatus) {
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = [.withoutEscapingSlashes]
+    guard let payload = try? encoder.encode(status) else { return }
+    var closed: [Int32] = []
+    queue.sync {
+      for fd in clients {
+        var length = UInt32(payload.count).bigEndian
+        let headerResult = withUnsafeBytes(of: &length) { ptr in
+          write(fd, ptr.baseAddress, ptr.count)
+        }
+        if headerResult != MemoryLayout<UInt32>.size {
+          closed.append(fd)
+          continue
+        }
+        let bodyResult = payload.withUnsafeBytes { ptr in
+          write(fd, ptr.baseAddress, payload.count)
+        }
+        if bodyResult != payload.count {
+          closed.append(fd)
+        }
+      }
+      if !closed.isEmpty {
+        clients.removeAll { fd in
+          if closed.contains(fd) {
+            close(fd)
+            return true
+          }
+          return false
+        }
+      }
+    }
   }
 }
 
-func activeBundleIdURL() -> URL? {
-  let fm = FileManager.default
+func statusSocketPath() -> String {
   if let sudoUser = ProcessInfo.processInfo.environment["SUDO_USER"],
      let pw = getpwnam(sudoUser) {
-    let home = String(cString: pw.pointee.pw_dir)
-    let base = URL(fileURLWithPath: home)
-      .appendingPathComponent("Library", isDirectory: true)
-      .appendingPathComponent("Application Support", isDirectory: true)
-    let dir = base.appendingPathComponent("Gehenna", isDirectory: true)
-    try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
-    return dir.appendingPathComponent("active-app.txt")
+    let uid = pw.pointee.pw_uid
+    return "/var/tmp/gehenna-status-\(uid).sock"
   }
-
-  guard let appSupport = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
-    return nil
-  }
-  let dir = appSupport.appendingPathComponent("Gehenna", isDirectory: true)
-  try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
-  return dir.appendingPathComponent("active-app.txt")
+  return "/var/tmp/gehenna-status-\(getuid()).sock"
 }
 
-func readActiveBundleId() -> String? {
-  guard let url = activeBundleIdURL(),
-        let data = try? Data(contentsOf: url),
-        let raw = String(data: data, encoding: .utf8) else {
+func startStatusServer(publisher: StatusPublisher) -> DispatchSourceRead? {
+  let path = statusSocketPath()
+  _ = unlink(path)
+  let fd = socket(AF_UNIX, SOCK_STREAM, 0)
+  if fd < 0 {
     return nil
   }
-  let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-  return trimmed.isEmpty ? nil : trimmed
+
+  var addr = sockaddr_un()
+  addr.sun_family = sa_family_t(AF_UNIX)
+  let pathBytes = Array(path.utf8CString)
+  let maxLen = MemoryLayout.size(ofValue: addr.sun_path)
+  let copyLen = min(pathBytes.count, maxLen)
+  _ = withUnsafeMutablePointer(to: &addr.sun_path) { ptr in
+    ptr.withMemoryRebound(to: CChar.self, capacity: copyLen) { buf in
+      pathBytes.withUnsafeBytes { bytes in
+        memcpy(buf, bytes.baseAddress, copyLen)
+      }
+    }
+  }
+
+  let bindResult = withUnsafePointer(to: &addr) { ptr in
+    ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { saPtr in
+      Darwin.bind(fd, saPtr, socklen_t(MemoryLayout<sockaddr_un>.size))
+    }
+  }
+  if bindResult != 0 {
+    close(fd)
+    return nil
+  }
+
+  _ = listen(fd, 16)
+  _ = fcntl(fd, F_SETFL, O_NONBLOCK)
+
+  if let sudoUser = ProcessInfo.processInfo.environment["SUDO_USER"],
+     let pw = getpwnam(sudoUser) {
+    let uid = pw.pointee.pw_uid
+    let gid = pw.pointee.pw_gid
+    _ = chown(path, uid, gid)
+    _ = chmod(path, S_IRUSR | S_IWUSR)
+  } else {
+    _ = chmod(path, S_IRUSR | S_IWUSR)
+  }
+
+  let source = DispatchSource.makeReadSource(fileDescriptor: fd, queue: DispatchQueue.global(qos: .utility))
+  source.setEventHandler {
+    while true {
+      var addr = sockaddr()
+      var len: socklen_t = socklen_t(MemoryLayout<sockaddr>.size)
+      let client = accept(fd, &addr, &len)
+      if client < 0 {
+        if errno == EWOULDBLOCK || errno == EAGAIN {
+          break
+        }
+        break
+      }
+      publisher.addClient(client)
+    }
+  }
+  source.setCancelHandler {
+    close(fd)
+    _ = unlink(path)
+  }
+  source.resume()
+  return source
+}
+
+final class ActiveAppState {
+  private let queue = DispatchQueue(label: "gehenna.active-app.state")
+  private var bundleId: String? = nil
+
+  func get() -> String? {
+    queue.sync { bundleId }
+  }
+
+  func set(_ value: String?) {
+    queue.sync { bundleId = value }
+  }
+}
+
+struct ActiveAppMessage: Codable {
+  let bundleId: String
+}
+
+func activeAppSocketPath() -> String {
+  if let sudoUser = ProcessInfo.processInfo.environment["SUDO_USER"],
+     let pw = getpwnam(sudoUser) {
+    let uid = pw.pointee.pw_uid
+    return "/var/tmp/gehenna-active-app-\(uid).sock"
+  }
+  return "/var/tmp/gehenna-active-app-\(getuid()).sock"
+}
+
+func startActiveAppServer(
+  state: ActiveAppState,
+  onUpdate: @escaping (String?) -> Void
+) -> DispatchSourceRead? {
+  let path = activeAppSocketPath()
+  _ = unlink(path)
+  let fd = socket(AF_UNIX, SOCK_STREAM, 0)
+  if fd < 0 {
+    return nil
+  }
+
+  var addr = sockaddr_un()
+  addr.sun_family = sa_family_t(AF_UNIX)
+  let pathBytes = Array(path.utf8CString)
+  let maxLen = MemoryLayout.size(ofValue: addr.sun_path)
+  let copyLen = min(pathBytes.count, maxLen)
+  _ = withUnsafeMutablePointer(to: &addr.sun_path) { ptr in
+    ptr.withMemoryRebound(to: CChar.self, capacity: copyLen) { buf in
+      pathBytes.withUnsafeBytes { bytes in
+        memcpy(buf, bytes.baseAddress, copyLen)
+      }
+    }
+  }
+
+  let bindResult = withUnsafePointer(to: &addr) { ptr in
+    ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { saPtr in
+      Darwin.bind(fd, saPtr, socklen_t(MemoryLayout<sockaddr_un>.size))
+    }
+  }
+  if bindResult != 0 {
+    close(fd)
+    return nil
+  }
+
+  _ = listen(fd, 8)
+  _ = fcntl(fd, F_SETFL, O_NONBLOCK)
+
+  if let sudoUser = ProcessInfo.processInfo.environment["SUDO_USER"],
+     let pw = getpwnam(sudoUser) {
+    let uid = pw.pointee.pw_uid
+    let gid = pw.pointee.pw_gid
+    _ = chown(path, uid, gid)
+    _ = chmod(path, S_IRUSR | S_IWUSR)
+  } else {
+    _ = chmod(path, S_IRUSR | S_IWUSR)
+  }
+
+  let source = DispatchSource.makeReadSource(fileDescriptor: fd, queue: DispatchQueue.global(qos: .utility))
+  source.setEventHandler {
+    while true {
+      var addr = sockaddr()
+      var len: socklen_t = socklen_t(MemoryLayout<sockaddr>.size)
+      let client = accept(fd, &addr, &len)
+      if client < 0 {
+        if errno == EWOULDBLOCK || errno == EAGAIN {
+          break
+        }
+        break
+      }
+      var data = Data()
+      var buffer = [UInt8](repeating: 0, count: 4096)
+      while true {
+        let count = read(client, &buffer, buffer.count)
+        if count > 0 {
+          data.append(buffer, count: count)
+        } else {
+          break
+        }
+      }
+      close(client)
+      if let message = try? JSONDecoder().decode(ActiveAppMessage.self, from: data) {
+        state.set(message.bundleId)
+        onUpdate(message.bundleId)
+      }
+    }
+  }
+  source.setCancelHandler {
+    close(fd)
+    _ = unlink(path)
+  }
+  source.resume()
+  return source
 }
 
 func resolveProfile(config: ProfilesConfig?, bundleId: String?) -> LayeredProfile? {
@@ -369,8 +566,12 @@ func resolveProfile(config: ProfilesConfig?, bundleId: String?) -> LayeredProfil
     return perApp
   }
   if let activeId = config.activeProfileId,
-     let active = config.profiles.first(where: { $0.id == activeId }) {
+     let active = config.profiles.first(where: { $0.id == activeId }),
+     active.perAppBundleId == nil {
     return active
+  }
+  if let fallback = config.profiles.first(where: { $0.name.lowercased() == "default" }) {
+    return fallback
   }
   return config.profiles.first
 }
@@ -460,6 +661,26 @@ final class EventInjector: @unchecked Sendable {
     }
 
     event.flags = cgFlags(from: modifiers)
+    event.setIntegerValueField(.eventSourceUserData, value: EventInjector.sourceTag)
+    event.post(tap: .cghidEventTap)
+  }
+
+  func sendKeyPress(usage: Int, modifiers: [HIDModifier]?) {
+    sendKey(usage: usage, modifiers: modifiers, isDown: true)
+    sendKey(usage: usage, modifiers: modifiers, isDown: false)
+  }
+
+  func sendScroll(delta: Int) {
+    guard let event = CGEvent(
+      scrollWheelEvent2Source: source,
+      units: .line,
+      wheelCount: 1,
+      wheel1: Int32(delta),
+      wheel2: 0,
+      wheel3: 0
+    ) else {
+      return
+    }
     event.setIntegerValueField(.eventSourceUserData, value: EventInjector.sourceTag)
     event.post(tap: .cghidEventTap)
   }
@@ -658,6 +879,15 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
   let openOptions = config.seize
     ? IOOptionBits(kIOHIDOptionsTypeSeizeDevice)
     : IOOptionBits(kIOHIDOptionsTypeNone)
+  var lastBundleId: String? = nil
+  let activeAppState = ActiveAppState()
+  let statusPublisher = StatusPublisher()
+  var keymapPopupToken = 0
+  var layerHoldTimer: DispatchSourceTimer?
+  var layerPopupTriggered = false
+  var keymapPopupVisible = false
+  var dpadPressed: Set<String> = []
+  var lastDpadEffective: String? = nil
 
   if config.enableOutput && profiles == nil {
     print("Output enabled but no profiles loaded. Output will remain disabled.")
@@ -665,8 +895,9 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
 
   func publishStatus(lastEvent: String?) {
     let (profilesConfig, _) = runtime.snapshot()
-    let bundleId = readActiveBundleId()
+    let bundleId = activeAppState.get()
     let profile = resolveProfile(config: profilesConfig, bundleId: bundleId)
+    lastBundleId = bundleId
     let status = DaemonStatus(
       pid: Int(getpid()),
       deviceName: mapping.device.name,
@@ -676,9 +907,11 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
       profileName: profile?.name,
       bundleId: bundleId,
       lastEvent: lastEvent,
+      keymapPopupToken: keymapPopupToken == 0 ? nil : keymapPopupToken,
+      keymapPopupVisible: keymapPopupVisible,
       updatedAt: ISO8601DateFormatter().string(from: Date())
     )
-    writeStatus(status)
+    statusPublisher.publish(status)
   }
 
   if devices.isEmpty {
@@ -686,12 +919,24 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
     publishStatus(lastEvent: "no devices found")
     return
   }
+  if let server = startActiveAppServer(state: activeAppState, onUpdate: { newBundleId in
+    if newBundleId != lastBundleId {
+      publishStatus(lastEvent: "app switched")
+    }
+  }) {
+    listeners.append(server)
+  }
+  if let statusServer = startStatusServer(publisher: statusPublisher) {
+    listeners.append(statusServer)
+  }
 
   func emit(_ event: InputEvent) {
-    if let value = event.value {
-      print("[\(event.state)] \(event.inputId) value=\(value) layer=\(event.layer) mod=\(event.layerModifier)")
-    } else {
-      print("[\(event.state)] \(event.inputId) layer=\(event.layer) mod=\(event.layerModifier)")
+    if config.logInputEvents {
+      if let value = event.value {
+        print("[\(event.state)] \(event.inputId) value=\(value) layer=\(event.layer) mod=\(event.layerModifier)")
+      } else {
+        print("[\(event.state)] \(event.inputId) layer=\(event.layer) mod=\(event.layerModifier)")
+      }
     }
     let suffix = event.value != nil ? " value=\(event.value ?? 0)" : ""
     publishStatus(lastEvent: "\(event.inputId) \(event.state)\(suffix)")
@@ -702,7 +947,9 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
       return
     }
     currentLayer = currentLayer % 3 + 1
-    print("[layer] switched to \(currentLayer)")
+    if config.logInputEvents {
+      print("[layer] switched to \(currentLayer)")
+    }
     publishStatus(lastEvent: "layer switched to \(currentLayer)")
   }
 
@@ -713,13 +960,28 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
     return currentLayer
   }
 
-  func handleAction(inputId: String, state: String) {
-    let (profilesConfig, macroLookup) = runtime.snapshot()
-    let bundleId = readActiveBundleId()
-    guard enableOutput, let profile = resolveProfile(config: profilesConfig, bundleId: bundleId) else {
-      return
-    }
+  func effectiveDpadInput() -> String? {
+    let up = dpadPressed.contains("dpad.up")
+    let down = dpadPressed.contains("dpad.down")
+    let left = dpadPressed.contains("dpad.left")
+    let right = dpadPressed.contains("dpad.right")
+    if up && left { return "dpad.up_left" }
+    if up && right { return "dpad.up_right" }
+    if down && left { return "dpad.down_left" }
+    if down && right { return "dpad.down_right" }
+    if up { return "dpad.up" }
+    if down { return "dpad.down" }
+    if left { return "dpad.left" }
+    if right { return "dpad.right" }
+    return nil
+  }
 
+  func executeAction(
+    inputId: String,
+    state: String,
+    profile: LayeredProfile,
+    macroLookup: [UUID: Macro]
+  ) {
     guard let action = resolveAction(profile: profile, layer: effectiveLayer(), inputId: inputId) else {
       return
     }
@@ -744,7 +1006,107 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
         return
       }
       macroRunner.run(macro)
+    case .scroll:
+      return
     }
+  }
+
+  func handleDpad(
+    inputId: String,
+    state: String,
+    mode: DPadMode,
+    profile: LayeredProfile,
+    macroLookup: [UUID: Macro]
+  ) -> Bool {
+    let baseIds: Set<String> = ["dpad.up", "dpad.down", "dpad.left", "dpad.right"]
+    guard baseIds.contains(inputId) else { return false }
+    if mode == .fourWay {
+      return false
+    }
+    if state == "pressed" {
+      dpadPressed.insert(inputId)
+    } else if state == "released" {
+      dpadPressed.remove(inputId)
+    }
+    let effective = effectiveDpadInput()
+    if effective != lastDpadEffective {
+      if let prev = lastDpadEffective {
+        executeAction(inputId: prev, state: "released", profile: profile, macroLookup: macroLookup)
+      }
+      if let next = effective {
+        executeAction(inputId: next, state: "pressed", profile: profile, macroLookup: macroLookup)
+      }
+      lastDpadEffective = effective
+    }
+    return true
+  }
+
+  func handleAxisAction(inputId: String, value: Int) {
+    let (profilesConfig, macroLookup) = runtime.snapshot()
+    let bundleId = activeAppState.get()
+    guard enableOutput, let profile = resolveProfile(config: profilesConfig, bundleId: bundleId) else {
+      return
+    }
+    let directionId: String?
+    if value > 0 {
+      directionId = "wheel.up"
+    } else if value < 0 {
+      directionId = "wheel.down"
+    } else {
+      directionId = nil
+    }
+
+    if let dir = directionId,
+       let dirAction = resolveAction(profile: profile, layer: effectiveLayer(), inputId: dir),
+       dirAction.type != .disabled {
+      switch dirAction.type {
+      case .disabled:
+        return
+      case .key:
+        guard let keyCode = dirAction.keyCode else { return }
+        injector.sendKeyPress(usage: keyCode, modifiers: dirAction.modifiers)
+      case .macro:
+        guard let macroId = dirAction.macroId, let macro = macroLookup[macroId] else { return }
+        macroRunner.run(macro)
+      case .scroll:
+        let multiplier = dirAction.scrollMultiplier ?? 1
+        injector.sendScroll(delta: value * multiplier)
+      }
+      return
+    }
+
+    guard let action = resolveAction(profile: profile, layer: effectiveLayer(), inputId: inputId) else {
+      return
+    }
+
+    switch action.type {
+    case .disabled:
+      return
+    case .key:
+      guard let keyCode = action.keyCode else { return }
+      injector.sendKeyPress(usage: keyCode, modifiers: action.modifiers)
+    case .macro:
+      guard let macroId = action.macroId, let macro = macroLookup[macroId] else { return }
+      macroRunner.run(macro)
+    case .scroll:
+      let multiplier = action.scrollMultiplier ?? 1
+      injector.sendScroll(delta: value * multiplier)
+    }
+  }
+
+  func handleAction(inputId: String, state: String) {
+    let (profilesConfig, macroLookup) = runtime.snapshot()
+    let bundleId = activeAppState.get()
+    guard enableOutput, let profile = resolveProfile(config: profilesConfig, bundleId: bundleId) else {
+      return
+    }
+
+    let dpadMode = profile.dpadMode ?? .fourWay
+    if handleDpad(inputId: inputId, state: state, mode: dpadMode, profile: profile, macroLookup: macroLookup) {
+      return
+    }
+
+    executeAction(inputId: inputId, state: state, profile: profile, macroLookup: macroLookup)
   }
 
   func modifiersFromFlags(_ flags: CGEventFlags) -> [HIDModifier] {
@@ -895,6 +1257,9 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
               layer: effectiveLayer(),
               layerModifier: layerHoldActive
             ))
+            if enableOutput {
+              handleAxisAction(inputId: inputId, value: event.intValue)
+            }
           }
         }, openOptions: options)
       }
@@ -921,12 +1286,38 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
             if hasLayerNow && !hadLayer {
               layerHoldActive = true
               layerUsedAsModifier = false
-              print("[layer] hold start")
+              layerPopupTriggered = false
+              layerHoldTimer?.cancel()
+              let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.global(qos: .utility))
+              timer.schedule(deadline: .now() + 5.0)
+              timer.setEventHandler {
+                if layerHoldActive && !layerPopupTriggered {
+                  layerPopupTriggered = true
+                  keymapPopupVisible = true
+                  keymapPopupToken += 1
+                  publishStatus(lastEvent: "keymap popup")
+                }
+              }
+              layerHoldTimer = timer
+              timer.resume()
+              if config.logInputEvents {
+                print("[layer] hold start")
+              }
             } else if !hasLayerNow && hadLayer {
               layerHoldActive = false
-              toggleLayerIfNeeded()
+              layerHoldTimer?.cancel()
+              layerHoldTimer = nil
+              if !layerPopupTriggered {
+                toggleLayerIfNeeded()
+              }
+              keymapPopupVisible = false
+              if layerPopupTriggered {
+                publishStatus(lastEvent: "keymap popup dismissed")
+              }
               layerUsedAsModifier = false
-              print("[layer] hold end")
+              if config.logInputEvents {
+                print("[layer] hold end")
+              }
             }
 
             previousModifiers[interfaceIndex] = modifiers

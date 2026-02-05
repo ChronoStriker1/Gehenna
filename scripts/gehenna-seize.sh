@@ -11,6 +11,11 @@ LOG_DIR="$USER_HOME/Library/Logs/Gehenna"
 LOG_FILE="$LOG_DIR/daemon.log"
 BUILD_DIR="$ROOT_DIR/.build/arm64-apple-macosx/debug"
 BIN_PATH="$BUILD_DIR/GehennaDaemon"
+LOG_ARGS=""
+
+if [ "${GEHENNA_LOG_INPUT:-0}" = "1" ]; then
+  LOG_ARGS="--log-input"
+fi
 
 if [ "$(id -u)" -ne 0 ]; then
   if sudo -n "$0" "$@" 2>/dev/null; then
@@ -25,9 +30,14 @@ cd "$ROOT_DIR"
 mkdir -p "$LOG_DIR"
  : > "$LOG_FILE"
 
+if /usr/bin/pgrep -f GehennaDaemon >/dev/null 2>&1; then
+  /usr/bin/pkill -f GehennaDaemon || true
+  sleep 0.2
+fi
+
 if [ -x "$BIN_PATH" ]; then
-  exec sh -c "\"$BIN_PATH\" --enable-output --seize \"$@\" 2>&1 | tee -a \"$LOG_FILE\""
+  exec sh -c "\"$BIN_PATH\" --enable-output --seize $LOG_ARGS \"$@\" 2>&1 | tee -a \"$LOG_FILE\""
 fi
 
 swift build
-exec sh -c "\"$BIN_PATH\" --enable-output --seize \"$@\" 2>&1 | tee -a \"$LOG_FILE\""
+exec sh -c "\"$BIN_PATH\" --enable-output --seize $LOG_ARGS \"$@\" 2>&1 | tee -a \"$LOG_FILE\""

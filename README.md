@@ -1,6 +1,7 @@
 # Gehenna
 
 Native macOS app for configuring the Razer Tartarus Pro with robust macro support and Windows-like capabilities.
+Version: v0.5.0
 
 ## Goals
 - Native macOS app with a full GUI and a background daemon.

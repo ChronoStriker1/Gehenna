@@ -90,12 +90,15 @@ extension HIDDeviceInfo {
 }
 
 public enum HIDError: Error, LocalizedError {
-  case managerOpenFailed
+  case managerOpenFailed(IOReturn)
 
   public var errorDescription: String? {
     switch self {
-    case .managerOpenFailed:
-      return "Failed to open IOHIDManager."
+    case .managerOpenFailed(let code):
+      if code == kIOReturnExclusiveAccess {
+        return "Failed to open IOHIDManager (exclusive access). Another process has seized the device."
+      }
+      return "Failed to open IOHIDManager (IOReturn: \(code))."
     }
   }
 }
@@ -114,7 +117,7 @@ public struct HIDEnumerator {
 
     let openResult = IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
     guard openResult == kIOReturnSuccess else {
-      throw HIDError.managerOpenFailed
+      throw HIDError.managerOpenFailed(openResult)
     }
 
     defer {
@@ -148,7 +151,7 @@ public struct HIDEnumerator {
 
     let openResult = IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
     guard openResult == kIOReturnSuccess else {
-      throw HIDError.managerOpenFailed
+      throw HIDError.managerOpenFailed(openResult)
     }
 
     defer {
