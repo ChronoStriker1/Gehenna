@@ -295,7 +295,8 @@ struct StatusView: View {
 struct KeymapView: View {
   @State private var layoutRows: [[String]] = []
   @State private var labels: [String: String] = [:]
-  @State private var status = "Not loaded"
+  @State private var mappingStatus = "Not loaded"
+  @State private var profilesStatus = "Not loaded"
   @State private var profilesConfig: ProfilesConfig?
   @State private var selectedProfileId: UUID?
   @State private var selectedLayer = "1"
@@ -372,7 +373,9 @@ struct KeymapView: View {
         Button("Reload Profiles") {
           loadProfiles()
         }
-        Text(status)
+        Text(mappingStatus)
+          .foregroundStyle(.secondary)
+        Text(profilesStatus)
           .foregroundStyle(.secondary)
       }
       HStack(spacing: 12) {
@@ -392,11 +395,10 @@ struct KeymapView: View {
           setActiveProfile()
         }
       }
-      if let config = profilesConfig {
-        Text("Profiles: \(config.profiles.count)")
-          .font(.caption)
-          .foregroundStyle(.secondary)
-      }
+      let count = profilesConfig?.profiles.count ?? 0
+      Text("Profiles: \(count)")
+        .font(.caption)
+        .foregroundStyle(.secondary)
     }
   }
 
@@ -407,25 +409,25 @@ struct KeymapView: View {
       let mapping = try loader.load(from: url)
       layoutRows = mapping.layout.rows
       labels = mapping.layout.labels
-      status = "Loaded mapping: \(mapping.layout.name)"
+      mappingStatus = "Mapping: \(mapping.layout.name)"
     } catch {
-      status = "Mapping error: \(error.localizedDescription)"
+      mappingStatus = "Mapping error: \(error.localizedDescription)"
     }
   }
 
   private func loadProfiles() {
     let loader = ProfilesLoader()
     let url = profilesURL()
-    ensureProfilesFile(at: url)
+    let resolved = ensureProfilesFile(at: url)
     do {
-      let config = try loader.load(from: url)
+      let config = try loader.load(from: resolved)
       profilesConfig = config
       if selectedProfileId == nil {
         selectedProfileId = config.activeProfileId ?? config.profiles.first?.id
       }
-      status = "Loaded profiles"
+      profilesStatus = "Profiles: loaded"
     } catch {
-      status = "Profiles error: \(error.localizedDescription)"
+      profilesStatus = "Profiles error: \(error.localizedDescription)"
     }
   }
 
@@ -434,23 +436,30 @@ struct KeymapView: View {
     if let appSupport = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
       let path = appSupport.appendingPathComponent("Gehenna", isDirectory: true)
         .appendingPathComponent("profiles.json")
-      if fm.fileExists(atPath: path.path) {
-        return path
-      }
+      return path
     }
     return repoRoot().appendingPathComponent("configs/profiles.json")
   }
 
-  private func ensureProfilesFile(at url: URL) {
+  private func ensureProfilesFile(at url: URL) -> URL {
     let fm = FileManager.default
     if fm.fileExists(atPath: url.path) {
-      return
+      return url
     }
     let fallback = repoRoot().appendingPathComponent("configs/profiles.json")
     if fm.fileExists(atPath: fallback.path) {
-      try? fm.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
-      try? fm.copyItem(at: fallback, to: url)
+      if url.path != fallback.path {
+        try? fm.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        if !fm.fileExists(atPath: url.path) {
+          try? fm.copyItem(at: fallback, to: url)
+        }
+        if fm.fileExists(atPath: url.path) {
+          return url
+        }
+      }
+      return fallback
     }
+    return url
   }
 
   private func writeProfiles(_ config: ProfilesConfig) {
@@ -464,7 +473,7 @@ struct KeymapView: View {
       encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
       if let data = try? encoder.encode(config) {
         try? data.write(to: url, options: .atomic)
-        status = "Saved profiles"
+    profilesStatus = "Profiles: saved"
         return
       }
     }
@@ -473,7 +482,7 @@ struct KeymapView: View {
     encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
     if let data = try? encoder.encode(config) {
       try? data.write(to: fallback, options: .atomic)
-      status = "Saved profiles (fallback)"
+      profilesStatus = "Profiles: saved (fallback)"
     }
   }
 
@@ -549,7 +558,7 @@ struct KeymapView: View {
     profilesConfig = config
     writeProfiles(config)
     DaemonController.shared.reloadConfigs()
-    status = "Active profile updated"
+    profilesStatus = "Profiles: active updated"
   }
 }
 
