@@ -48,23 +48,19 @@ final class DaemonController: ObservableObject {
     let scriptURL = repoRoot().appendingPathComponent("scripts/gehenna-seize.sh")
     let process = Process()
     process.executableURL = scriptURL
-
-    let output = Pipe()
-    process.standardOutput = output
-    process.standardError = output
-
-    do {
-      try process.run()
-      status = "Launching daemon..."
-      let handle = output.fileHandleForReading
-      handle.readabilityHandler = { [weak self] _ in
-        DispatchQueue.main.async {
+    status = "Launching daemon..."
+    DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+      do {
+        try process.run()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
           self?.refreshStatus()
           self?.refreshLog()
         }
+      } catch {
+        DispatchQueue.main.async {
+          self?.status = "Failed to start daemon: \(error.localizedDescription)"
+        }
       }
-    } catch {
-      status = "Failed to start daemon: \(error.localizedDescription)"
     }
   }
 
