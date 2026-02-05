@@ -313,6 +313,82 @@ final class EventInjector: @unchecked Sendable {
   }
 }
 
+final class EventSuppressor {
+  private let window: TimeInterval
+  private var recent: [InputKey: CFAbsoluteTime] = [:]
+  private let queue = DispatchQueue(label: "gehenna.suppressor")
+
+  init(window: TimeInterval) {
+    self.window = window
+  }
+
+  func record(_ key: InputKey) {
+    let now = CFAbsoluteTimeGetCurrent()
+    queue.sync {
+      recent[key] = now
+    }
+  }
+
+  func shouldSuppress(_ key: InputKey) -> Bool {
+    let now = CFAbsoluteTimeGetCurrent()
+    return queue.sync {
+      guard let last = recent[key] else {
+        return false
+      }
+      return (now - last) <= window
+    }
+  }
+}
+
+final class KeyEventTap {
+  private var tap: CFMachPort?
+  private var source: CFRunLoopSource?
+  private let handler: (CGEventType, CGEvent) -> Unmanaged<CGEvent>?
+
+  init(handler: @escaping (CGEventType, CGEvent) -> Unmanaged<CGEvent>?) {
+    self.handler = handler
+  }
+
+  func start() {
+    let mask = (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.keyUp.rawValue)
+    guard let tap = CGEvent.tapCreate(
+      tap: .cghidEventTap,
+      place: .headInsertEventTap,
+      options: .defaultTap,
+      eventsOfInterest: CGEventMask(mask),
+      callback: { proxy, type, event, userInfo in
+        guard let userInfo else {
+          return Unmanaged.passRetained(event)
+        }
+        let tap = Unmanaged<KeyEventTap>.fromOpaque(userInfo).takeUnretainedValue()
+        return tap.handler(type, event) ?? Unmanaged.passRetained(event)
+      },
+      userInfo: Unmanaged.passUnretained(self).toOpaque()
+    ) else {
+      print("Failed to create key event tap. Ensure Accessibility permission is granted.")
+      return
+    }
+
+    self.tap = tap
+    self.source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
+    if let source {
+      CFRunLoopAddSource(CFRunLoopGetCurrent(), source, .commonModes)
+    }
+    CGEvent.tapEnable(tap: tap, enable: true)
+  }
+
+  func stop() {
+    if let source {
+      CFRunLoopRemoveSource(CFRunLoopGetCurrent(), source, .commonModes)
+    }
+    if let tap {
+      CGEvent.tapEnable(tap: tap, enable: false)
+    }
+    source = nil
+    tap = nil
+  }
+}
+
 final class MacroRunner {
   private let injector: EventInjector
 
@@ -377,6 +453,8 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
   let macroLookup = Dictionary(uniqueKeysWithValues: macros.macros.map { ($0.id, $0) })
   let active = profiles.flatMap { activeProfile(from: $0) }
   let enableOutput = config.enableOutput && active != nil
+  let suppressor = EventSuppressor(window: 0.15)
+  var eventTap: KeyEventTap?
   let openOptions = config.seize
     ? IOOptionBits(kIOHIDOptionsTypeSeizeDevice)
     : IOOptionBits(kIOHIDOptionsTypeNone)
@@ -437,6 +515,64 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
     }
   }
 
+  func modifiersFromFlags(_ flags: CGEventFlags) -> [HIDModifier] {
+    var modifiers: [HIDModifier] = []
+    if flags.contains(.maskControl) { modifiers.append(.leftControl) }
+    if flags.contains(.maskShift) { modifiers.append(.leftShift) }
+    if flags.contains(.maskAlternate) { modifiers.append(.leftAlt) }
+    if flags.contains(.maskCommand) { modifiers.append(.leftGUI) }
+    return normalizedModifiers(modifiers)
+  }
+
+  func keyCodeToUsage(_ keyCode: CGKeyCode) -> Int? {
+    for (usage, code) in hidUsageToKeyCode where code == keyCode {
+      return usage
+    }
+    return nil
+  }
+
+  if enableOutput {
+    eventTap = KeyEventTap { type, event in
+      guard type == .keyDown || type == .keyUp else {
+        return Unmanaged.passRetained(event)
+      }
+
+      let keyCode = CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode))
+      guard let usage = keyCodeToUsage(keyCode) else {
+        return Unmanaged.passRetained(event)
+      }
+
+      let flags = event.flags
+      let modifiers = modifiersFromFlags(flags)
+      let candidates = [
+        InputKey(interface: 2, usagePage: 7, usage: usage, modifiers: modifiers),
+        InputKey(interface: 0, usagePage: 7, usage: usage, modifiers: modifiers)
+      ]
+
+      for key in candidates {
+        if suppressor.shouldSuppress(key) {
+          return nil
+        }
+      }
+
+      return Unmanaged.passRetained(event)
+    }
+    eventTap?.start()
+  }
+
+  func startWithFallback(_ start: (IOOptionBits) throws -> Void) throws {
+    do {
+      try start(openOptions)
+    } catch {
+      if config.seize {
+        print("Seize failed for an interface (continuing without seize).")
+        try start(IOOptionBits(kIOHIDOptionsTypeNone))
+      } else {
+        throw error
+      }
+    }
+  }
+
   for interfaceIndex in usedInterfaces.sorted() {
     guard let device = deviceByInterface[interfaceIndex] else {
       print("Mapping references interface \(interfaceIndex), but no matching HID interface was classified.")
@@ -453,107 +589,117 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
 
     if hasAxis {
       let listener = HIDValueListener(device: device)
-      try listener.start(handler: { event in
-        let key = InputKey(
-          interface: interfaceIndex,
-          usagePage: event.usagePage,
-          usage: event.usage,
-          modifiers: []
-        )
+      try startWithFallback { options in
+        try listener.start(handler: { event in
+          let key = InputKey(
+            interface: interfaceIndex,
+            usagePage: event.usagePage,
+            usage: event.usage,
+            modifiers: []
+          )
 
-        guard let inputId = lookup[key] else {
-          return
-        }
+          guard let inputId = lookup[key] else {
+            return
+          }
 
-        if event.intValue != 0 {
-          emit(InputEvent(
-            inputId: inputId,
-            state: "axis",
-            value: event.intValue,
-            layer: effectiveLayer(),
-            layerModifier: layerHoldActive
-          ))
-        }
-      }, openOptions: openOptions)
+          if event.intValue != 0 {
+            emit(InputEvent(
+              inputId: inputId,
+              state: "axis",
+              value: event.intValue,
+              layer: effectiveLayer(),
+              layerModifier: layerHoldActive
+            ))
+          }
+        }, openOptions: options)
+      }
       listeners.append(listener)
     }
 
     if hasKeys {
       let listener = HIDInputListener(device: device)
-      try listener.start(handler: { report in
-        guard let decoded = HIDKeyboardReportDecoder.decode(report: report.bytes) else {
-          return
-        }
-
-        let modifiers = Set(HIDModifierSet.toModifiers(decoded.modifiers))
-        let filteredModifiers = normalizedModifiers(modifiers.filter { $0 != .leftAlt })
-        let keys = decoded.keys
-
-        if interfaceIndex == 0 {
-          let previous = previousModifiers[interfaceIndex] ?? Set()
-          let hasLayerNow = modifiers.contains(.leftAlt)
-          let hadLayer = previous.contains(.leftAlt)
-
-          if hasLayerNow && !hadLayer {
-            layerHoldActive = true
-            layerUsedAsModifier = false
-            print("[layer] hold start")
-          } else if !hasLayerNow && hadLayer {
-            layerHoldActive = false
-            toggleLayerIfNeeded()
-            layerUsedAsModifier = false
-            print("[layer] hold end")
+      try startWithFallback { options in
+        try listener.start(handler: { report in
+          guard let decoded = HIDKeyboardReportDecoder.decode(report: report.bytes) else {
+            return
           }
 
-          previousModifiers[interfaceIndex] = modifiers
-        }
+          let modifiers = Set(HIDModifierSet.toModifiers(decoded.modifiers))
+          let filteredModifiers = normalizedModifiers(modifiers.filter { $0 != .leftAlt })
+          let keys = decoded.keys
 
-        let currentSet: Set<InputKey> = Set(keys.map { key in
-          InputKey(
-            interface: interfaceIndex,
-            usagePage: 7,
-            usage: Int(key),
-            modifiers: filteredModifiers
-          )
-        })
+          if interfaceIndex == 0 {
+            let previous = previousModifiers[interfaceIndex] ?? Set()
+            let hasLayerNow = modifiers.contains(.leftAlt)
+            let hadLayer = previous.contains(.leftAlt)
 
-        let previous = previousKeys[interfaceIndex] ?? Set()
-        let pressed = currentSet.subtracting(previous)
-        let released = previous.subtracting(currentSet)
-        previousKeys[interfaceIndex] = currentSet
+            if hasLayerNow && !hadLayer {
+              layerHoldActive = true
+              layerUsedAsModifier = false
+              print("[layer] hold start")
+            } else if !hasLayerNow && hadLayer {
+              layerHoldActive = false
+              toggleLayerIfNeeded()
+              layerUsedAsModifier = false
+              print("[layer] hold end")
+            }
 
-        if layerHoldActive, !pressed.isEmpty {
-          layerUsedAsModifier = true
-        }
+            previousModifiers[interfaceIndex] = modifiers
+          }
 
-        for key in pressed {
-          if let inputId = lookup[key] {
-            let event = InputEvent(
-              inputId: inputId,
-              state: "pressed",
-              value: nil,
-              layer: effectiveLayer(),
-              layerModifier: layerHoldActive
+          let currentSet: Set<InputKey> = Set(keys.map { key in
+            InputKey(
+              interface: interfaceIndex,
+              usagePage: 7,
+              usage: Int(key),
+              modifiers: filteredModifiers
             )
-            emit(event)
-            handleAction(inputId: inputId, state: "pressed")
-          }
-        }
+          })
 
-        for key in released {
-          if let inputId = lookup[key] {
-            let event = InputEvent(
-              inputId: inputId,
-              state: "released",
-              value: nil,
-              layer: effectiveLayer(),
-              layerModifier: layerHoldActive
-            )
-            emit(event)
-            handleAction(inputId: inputId, state: "released")
+          let previous = previousKeys[interfaceIndex] ?? Set()
+          let pressed = currentSet.subtracting(previous)
+          let released = previous.subtracting(currentSet)
+          previousKeys[interfaceIndex] = currentSet
+
+          if layerHoldActive, !pressed.isEmpty {
+            layerUsedAsModifier = true
           }
-        }
-      }, openOptions: openOptions)
+
+          for key in pressed {
+            if let inputId = lookup[key] {
+              let event = InputEvent(
+                inputId: inputId,
+                state: "pressed",
+                value: nil,
+                layer: effectiveLayer(),
+                layerModifier: layerHoldActive
+              )
+              emit(event)
+              if enableOutput {
+                suppressor.record(key)
+              }
+              handleAction(inputId: inputId, state: "pressed")
+            }
+          }
+
+          for key in released {
+            if let inputId = lookup[key] {
+              let event = InputEvent(
+                inputId: inputId,
+                state: "released",
+                value: nil,
+                layer: effectiveLayer(),
+                layerModifier: layerHoldActive
+              )
+              emit(event)
+              if enableOutput {
+                suppressor.record(key)
+              }
+              handleAction(inputId: inputId, state: "released")
+            }
+          }
+        }, openOptions: options)
+      }
       listeners.append(listener)
     }
   }
@@ -566,6 +712,7 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
   let signalSource = DispatchSource.makeSignalSource(signal: SIGINT, queue: .main)
   signal(SIGINT, SIG_IGN)
   signalSource.setEventHandler {
+    eventTap?.stop()
     CFRunLoopStop(CFRunLoopGetCurrent())
   }
   signalSource.resume()
