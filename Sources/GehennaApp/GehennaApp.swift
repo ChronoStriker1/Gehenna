@@ -18,6 +18,7 @@ final class DaemonController: ObservableObject {
   @Published var currentLayer = 1
   @Published var deviceConnected = false
   @Published var lastEvent: String? = nil
+  @Published var profileName: String? = nil
 
   @Published var startMinimized: Bool {
     didSet { UserDefaults.standard.set(startMinimized, forKey: AppSettingKey.startMinimized) }
@@ -80,6 +81,13 @@ final class DaemonController: ObservableObject {
     }
   }
 
+  func restartDaemon() {
+    stopDaemon()
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
+      self?.runSeizedDaemon()
+    }
+  }
+
   func reloadConfigs() {
     let scriptURL = repoRoot().appendingPathComponent("scripts/gehenna-reload.sh")
     let process = Process()
@@ -117,6 +125,7 @@ final class DaemonController: ObservableObject {
       currentLayer = decoded.layer
       deviceConnected = decoded.connected
       lastEvent = decoded.lastEvent
+      profileName = decoded.profileName
     }
   }
 
@@ -154,6 +163,7 @@ struct DaemonStatus: Codable {
   let connected: Bool
   let layer: Int
   let layerModifier: Bool
+  let profileName: String?
   let lastEvent: String?
   let updatedAt: String
 }
@@ -245,6 +255,9 @@ struct StatusView: View {
     HStack(spacing: 12) {
       Text("Device: \(controller.deviceConnected ? "Connected" : "Disconnected")")
       Text("Layer: \(controller.currentLayer)")
+      if let profile = controller.profileName {
+        Text("Profile: \(profile)")
+      }
       if let lastEvent = controller.lastEvent {
         Text("Last: \(lastEvent)")
       }
@@ -395,7 +408,10 @@ private func repoRoot() -> URL {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
   private var statusItem: NSStatusItem?
+  private var statusMenuItem: NSMenuItem?
+  private var profileMenuItem: NSMenuItem?
   private let controller = DaemonController.shared
+  private var menuTimer: Timer?
 
   func applicationDidFinishLaunching(_ notification: Notification) {
     setupStatusItem()
@@ -404,6 +420,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
     if controller.autoStartDaemon {
       controller.runSeizedDaemon()
+    }
+    menuTimer?.invalidate()
+    menuTimer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
+      DispatchQueue.main.async {
+        self?.refreshMenuStatus()
+      }
     }
   }
 
@@ -437,14 +459,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
     let menu = NSMenu()
     menu.addItem(NSMenuItem(title: "Show Gehenna", action: #selector(showApp), keyEquivalent: ""))
+    let statusMenu = NSMenuItem(title: "Status: Unknown", action: nil, keyEquivalent: "")
+    statusMenu.isEnabled = false
+    let profileItem = NSMenuItem(title: "Profile: Unknown", action: nil, keyEquivalent: "")
+    profileItem.isEnabled = false
+    menu.addItem(statusMenu)
+    menu.addItem(profileItem)
     menu.addItem(NSMenuItem(title: "Start Daemon", action: #selector(startDaemon), keyEquivalent: ""))
     menu.addItem(NSMenuItem(title: "Stop Daemon", action: #selector(stopDaemon), keyEquivalent: ""))
     menu.addItem(NSMenuItem(title: "Reload Configs", action: #selector(reloadConfigs), keyEquivalent: ""))
+    menu.addItem(NSMenuItem(title: "Restart Daemon", action: #selector(restartDaemon), keyEquivalent: ""))
     menu.addItem(NSMenuItem.separator())
     menu.addItem(NSMenuItem(title: "Quit Gehenna", action: #selector(quitApp), keyEquivalent: "q"))
     menu.items.forEach { $0.target = self }
     item.menu = menu
     statusItem = item
+    statusMenuItem = statusMenu
+    profileMenuItem = profileItem
   }
 
   @objc private func showApp() {
@@ -460,6 +491,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     controller.stopDaemon()
   }
 
+  @objc private func restartDaemon() {
+    controller.restartDaemon()
+  }
+
   @objc private func reloadConfigs() {
     controller.reloadConfigs()
   }
@@ -467,6 +502,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
   @objc private func quitApp() {
     controller.stopDaemon()
     NSApplication.shared.terminate(nil)
+  }
+
+  private func refreshMenuStatus() {
+    controller.refreshStatus()
+    let statusText = controller.isRunning ? "Running" : "Stopped"
+    statusMenuItem?.title = "Status: \(statusText) • Layer \(controller.currentLayer)"
+    if let profile = controller.profileName {
+      profileMenuItem?.title = "Profile: \(profile)"
+    } else {
+      profileMenuItem?.title = "Profile: (none)"
+    }
   }
 }
 

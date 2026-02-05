@@ -33,7 +33,7 @@ struct InputEvent {
   let layerModifier: Bool
 }
 
-final class RuntimeState {
+final class RuntimeState: @unchecked Sendable {
   private let queue = DispatchQueue(label: "gehenna.runtime")
   private var activeProfile: LayeredProfile?
   private var macroLookup: [UUID: Macro]
@@ -63,6 +63,7 @@ struct DaemonStatus: Codable {
   let connected: Bool
   let layer: Int
   let layerModifier: Bool
+  let profileName: String?
   let lastEvent: String?
   let updatedAt: String
 }
@@ -594,12 +595,6 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
   var layerHoldActive = false
   var layerUsedAsModifier = false
 
-  if devices.isEmpty {
-    print("No HID devices found for vendorId=\(mapping.device.vendorId) productId=\(mapping.device.productId)")
-    publishStatus(lastEvent: "no devices found")
-    return
-  }
-
   let deviceByInterface = classifyInterfaces(devices: devices)
   let usedInterfaces = Set(mapping.inputs.values.map { $0.hid.interface })
   var listeners: [AnyObject] = []
@@ -625,16 +620,24 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
   }
 
   func publishStatus(lastEvent: String?) {
+    let (profile, _) = runtime.snapshot()
     let status = DaemonStatus(
       pid: Int(getpid()),
       deviceName: mapping.device.name,
       connected: !devices.isEmpty,
       layer: currentLayer,
       layerModifier: layerHoldActive,
+      profileName: profile?.name,
       lastEvent: lastEvent,
       updatedAt: ISO8601DateFormatter().string(from: Date())
     )
     writeStatus(status)
+  }
+
+  if devices.isEmpty {
+    print("No HID devices found for vendorId=\(mapping.device.vendorId) productId=\(mapping.device.productId)")
+    publishStatus(lastEvent: "no devices found")
+    return
   }
 
   func emit(_ event: InputEvent) {
