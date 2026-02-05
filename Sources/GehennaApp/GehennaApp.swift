@@ -190,7 +190,7 @@ struct StatusView: View {
     VStack(alignment: .leading, spacing: 8) {
       Text("Preferences")
         .font(.headline)
-      Toggle("Start minimized", isOn: $controller.startMinimized)
+      Toggle("Start in system tray", isOn: $controller.startMinimized)
       Toggle("Auto-start daemon on launch", isOn: $controller.autoStartDaemon)
       Toggle("Close button sends to tray", isOn: $controller.closeToTray)
     }
