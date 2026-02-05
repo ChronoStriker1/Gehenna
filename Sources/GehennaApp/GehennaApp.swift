@@ -1,3 +1,4 @@
+import AppKit
 import GehennaCore
 import SwiftUI
 
@@ -63,6 +64,9 @@ struct StatusView: View {
         }
         Button("Stop Daemon") {
           stopDaemon()
+        }
+        Button("Quit App") {
+          NSApplication.shared.terminate(nil)
         }
         Button("Refresh Status") {
           refreshStatus()
@@ -307,6 +311,14 @@ struct GehennaApp: App {
   var body: some Scene {
     WindowGroup {
       ContentView()
+    }
+    .commands {
+      CommandGroup(replacing: .appTermination) {
+        Button("Quit Gehenna") {
+          NSApplication.shared.terminate(nil)
+        }
+        .keyboardShortcut("q")
+      }
     }
   }
 }

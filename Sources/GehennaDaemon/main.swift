@@ -2,6 +2,7 @@ import Foundation
 import GehennaCore
 import GehennaHID
 import ApplicationServices
+import Darwin
 
 struct DaemonConfig {
   let mappingPath: String?
@@ -915,6 +916,8 @@ func classifyInterfaces(devices: [HIDDevice]) -> [Int: HIDDevice] {
 }
 
 func run() -> Int32 {
+  setbuf(stdout, nil)
+  setbuf(stderr, nil)
   let config = parseArgs()
   do {
     let mapping = try loadMapping(config: config)
