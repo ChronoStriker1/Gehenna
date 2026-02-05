@@ -2,7 +2,121 @@ import AppKit
 import GehennaCore
 import SwiftUI
 
+enum AppSettingKey {
+  static let startMinimized = "gehenna.startMinimized"
+  static let autoStartDaemon = "gehenna.autoStartDaemon"
+  static let closeToTray = "gehenna.closeToTray"
+}
+
+@MainActor
+final class DaemonController: ObservableObject {
+  static let shared = DaemonController()
+
+  @Published var status = "Idle"
+  @Published var isRunning = false
+  @Published var logText = "Log output will appear here."
+
+  @Published var startMinimized: Bool {
+    didSet { UserDefaults.standard.set(startMinimized, forKey: AppSettingKey.startMinimized) }
+  }
+  @Published var autoStartDaemon: Bool {
+    didSet { UserDefaults.standard.set(autoStartDaemon, forKey: AppSettingKey.autoStartDaemon) }
+  }
+  @Published var closeToTray: Bool {
+    didSet { UserDefaults.standard.set(closeToTray, forKey: AppSettingKey.closeToTray) }
+  }
+
+  private var timer: Timer?
+
+  private init() {
+    startMinimized = UserDefaults.standard.bool(forKey: AppSettingKey.startMinimized)
+    autoStartDaemon = UserDefaults.standard.bool(forKey: AppSettingKey.autoStartDaemon)
+    closeToTray = UserDefaults.standard.bool(forKey: AppSettingKey.closeToTray)
+  }
+
+  func startAutoRefresh() {
+    timer?.invalidate()
+    timer = Timer.scheduledTimer(withTimeInterval: 2.0, repeats: true) { [weak self] _ in
+      DispatchQueue.main.async {
+        self?.refreshStatus()
+        self?.refreshLog()
+      }
+    }
+  }
+
+  func runSeizedDaemon() {
+    let scriptURL = repoRoot().appendingPathComponent("scripts/gehenna-seize.sh")
+    let process = Process()
+    process.executableURL = scriptURL
+
+    let output = Pipe()
+    process.standardOutput = output
+    process.standardError = output
+
+    do {
+      try process.run()
+      status = "Launching daemon..."
+      let handle = output.fileHandleForReading
+      handle.readabilityHandler = { [weak self] _ in
+        DispatchQueue.main.async {
+          self?.refreshStatus()
+          self?.refreshLog()
+        }
+      }
+    } catch {
+      status = "Failed to start daemon: \(error.localizedDescription)"
+    }
+  }
+
+  func stopDaemon() {
+    let scriptURL = repoRoot().appendingPathComponent("scripts/gehenna-stop.sh")
+    let process = Process()
+    process.executableURL = scriptURL
+    do {
+      try process.run()
+      status = "Stop signal sent."
+      refreshStatus()
+    } catch {
+      status = "Failed to stop daemon: \(error.localizedDescription)"
+    }
+  }
+
+  func refreshStatus() {
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: "/usr/bin/pgrep")
+    process.arguments = ["-f", "GehennaDaemon"]
+    let output = Pipe()
+    process.standardOutput = output
+    do {
+      try process.run()
+      let data = output.fileHandleForReading.readDataToEndOfFile()
+      let text = String(data: data, encoding: .utf8) ?? ""
+      isRunning = !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+      status = isRunning ? "Running" : "Stopped"
+    } catch {
+      isRunning = false
+      status = "Stopped"
+    }
+  }
+
+  func refreshLog() {
+    let logURL = FileManager.default
+      .homeDirectoryForCurrentUser
+      .appendingPathComponent("Library/Logs/Gehenna/daemon.log")
+    guard let data = try? Data(contentsOf: logURL),
+          let text = String(data: data, encoding: .utf8) else {
+      logText = "No log found yet."
+      return
+    }
+    let lines = text.split(separator: "\n", omittingEmptySubsequences: false)
+    let tail = lines.suffix(200).joined(separator: "\n")
+    logText = tail
+  }
+}
+
 struct ContentView: View {
+  @ObservedObject private var controller = DaemonController.shared
+
   var body: some View {
     TabView {
       StatusView()
@@ -13,14 +127,14 @@ struct ContentView: View {
         .tabItem { Label("Macros", systemImage: "bolt.horizontal") }
     }
     .frame(minWidth: 760, minHeight: 520)
+    .onAppear {
+      controller.startAutoRefresh()
+    }
   }
 }
 
 struct StatusView: View {
-  @State private var status = "Idle"
-  @State private var isRunning = false
-  @State private var logText = "Log output will appear here."
-  @State private var timer = Timer.publish(every: 2.0, on: .main, in: .common).autoconnect()
+  @ObservedObject private var controller = DaemonController.shared
 
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
@@ -28,18 +142,11 @@ struct StatusView: View {
       Divider()
       controls
       statusRow
+      preferences
       logViewer
       Spacer()
     }
     .padding(24)
-    .onAppear {
-      refreshStatus()
-      refreshLog()
-    }
-    .onReceive(timer) { _ in
-      refreshStatus()
-      refreshLog()
-    }
   }
 
   private var header: some View {
@@ -59,17 +166,14 @@ struct StatusView: View {
         .bold()
       HStack(spacing: 12) {
         Button("Start Seized Daemon") {
-          runSeizedDaemon()
+          controller.runSeizedDaemon()
         }
         Button("Stop Daemon") {
-          stopDaemon()
-        }
-        Button("Quit App") {
-          NSApplication.shared.terminate(nil)
+          controller.stopDaemon()
         }
         Button("Refresh Status") {
-          refreshStatus()
-          refreshLog()
+          controller.refreshStatus()
+          controller.refreshLog()
         }
       }
     }
@@ -78,11 +182,21 @@ struct StatusView: View {
   private var statusRow: some View {
     HStack(spacing: 8) {
       Circle()
-        .fill(isRunning ? Color.green : Color.red)
+        .fill(controller.isRunning ? Color.green : Color.red)
         .frame(width: 10, height: 10)
-      Text("Status: \(status)")
+      Text("Status: \(controller.status)")
         .font(.callout)
         .foregroundStyle(.secondary)
+    }
+  }
+
+  private var preferences: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      Text("Preferences")
+        .font(.headline)
+      Toggle("Start minimized", isOn: $controller.startMinimized)
+      Toggle("Auto-start daemon on launch", isOn: $controller.autoStartDaemon)
+      Toggle("Close button sends to tray", isOn: $controller.closeToTray)
     }
   }
 
@@ -91,7 +205,7 @@ struct StatusView: View {
       Text("Daemon Log")
         .font(.headline)
       ScrollView {
-        Text(logText)
+        Text(controller.logText)
           .font(.system(.footnote, design: .monospaced))
           .frame(maxWidth: .infinity, alignment: .leading)
           .padding(12)
@@ -99,80 +213,6 @@ struct StatusView: View {
           .cornerRadius(8)
       }
     }
-  }
-
-  private func runSeizedDaemon() {
-    let scriptURL = repoRoot().appendingPathComponent("scripts/gehenna-seize.sh")
-    let process = Process()
-    process.executableURL = scriptURL
-
-    let output = Pipe()
-    process.standardOutput = output
-    process.standardError = output
-
-    do {
-      try process.run()
-      status = "Launching daemon..."
-      let handle = output.fileHandleForReading
-      handle.readabilityHandler = { fileHandle in
-        let data = fileHandle.availableData
-        guard !data.isEmpty, let text = String(data: data, encoding: .utf8) else {
-          return
-        }
-        DispatchQueue.main.async {
-          status = text.trimmingCharacters(in: .whitespacesAndNewlines)
-          refreshStatus()
-          refreshLog()
-        }
-      }
-    } catch {
-      status = "Failed to start daemon: \(error.localizedDescription)"
-    }
-  }
-
-  private func stopDaemon() {
-    let scriptURL = repoRoot().appendingPathComponent("scripts/gehenna-stop.sh")
-    let process = Process()
-    process.executableURL = scriptURL
-    do {
-      try process.run()
-      status = "Stop signal sent."
-      refreshStatus()
-    } catch {
-      status = "Failed to stop daemon: \(error.localizedDescription)"
-    }
-  }
-
-  private func refreshStatus() {
-    let process = Process()
-    process.executableURL = URL(fileURLWithPath: "/usr/bin/pgrep")
-    process.arguments = ["-f", "GehennaDaemon"]
-    let output = Pipe()
-    process.standardOutput = output
-    do {
-      try process.run()
-      let data = output.fileHandleForReading.readDataToEndOfFile()
-      let text = String(data: data, encoding: .utf8) ?? ""
-      isRunning = !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-      status = isRunning ? "Running" : "Stopped"
-    } catch {
-      isRunning = false
-      status = "Stopped"
-    }
-  }
-
-  private func refreshLog() {
-    let logURL = FileManager.default
-      .homeDirectoryForCurrentUser
-      .appendingPathComponent("Library/Logs/Gehenna/daemon.log")
-    guard let data = try? Data(contentsOf: logURL),
-          let text = String(data: data, encoding: .utf8) else {
-      logText = "No log found yet."
-      return
-    }
-    let lines = text.split(separator: "\n", omittingEmptySubsequences: false)
-    let tail = lines.suffix(200).joined(separator: "\n")
-    logText = tail
   }
 }
 
@@ -289,19 +329,81 @@ private func repoRoot() -> URL {
     .deletingLastPathComponent()
 }
 
+@MainActor
+final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
+  private var statusItem: NSStatusItem?
+  private let controller = DaemonController.shared
+
+  func applicationDidFinishLaunching(_ notification: Notification) {
+    setupStatusItem()
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+      self.applyWindowBehavior()
+    }
+    if controller.autoStartDaemon {
+      controller.runSeizedDaemon()
+    }
+  }
+
+  func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+    return !controller.closeToTray
+  }
+
+  func windowShouldClose(_ sender: NSWindow) -> Bool {
+    if controller.closeToTray {
+      sender.orderOut(nil)
+      return false
+    }
+    return true
+  }
+
+  private func applyWindowBehavior() {
+    guard let window = NSApplication.shared.windows.first else { return }
+    window.delegate = self
+    if controller.startMinimized {
+      window.orderOut(nil)
+    }
+  }
+
+  private func setupStatusItem() {
+    let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+    item.button?.image = NSImage(systemSymbolName: "keyboard", accessibilityDescription: "Gehenna")
+    let menu = NSMenu()
+    menu.addItem(NSMenuItem(title: "Show Gehenna", action: #selector(showApp), keyEquivalent: ""))
+    menu.addItem(NSMenuItem(title: "Start Daemon", action: #selector(startDaemon), keyEquivalent: ""))
+    menu.addItem(NSMenuItem(title: "Stop Daemon", action: #selector(stopDaemon), keyEquivalent: ""))
+    menu.addItem(NSMenuItem.separator())
+    menu.addItem(NSMenuItem(title: "Quit Gehenna", action: #selector(quitApp), keyEquivalent: "q"))
+    menu.items.forEach { $0.target = self }
+    item.menu = menu
+    statusItem = item
+  }
+
+  @objc private func showApp() {
+    NSApp.activate(ignoringOtherApps: true)
+    NSApplication.shared.windows.first?.makeKeyAndOrderFront(nil)
+  }
+
+  @objc private func startDaemon() {
+    controller.runSeizedDaemon()
+  }
+
+  @objc private func stopDaemon() {
+    controller.stopDaemon()
+  }
+
+  @objc private func quitApp() {
+    controller.stopDaemon()
+    NSApplication.shared.terminate(nil)
+  }
+}
+
 @main
 struct GehennaApp: App {
+  @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+
   var body: some Scene {
     WindowGroup {
       ContentView()
-    }
-    .commands {
-      CommandGroup(replacing: .appTermination) {
-        Button("Quit Gehenna") {
-          NSApplication.shared.terminate(nil)
-        }
-        .keyboardShortcut("q")
-      }
     }
   }
 }
