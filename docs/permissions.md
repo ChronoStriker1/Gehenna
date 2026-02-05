@@ -31,6 +31,13 @@ sudo chmod 0440 /etc/sudoers.d/gehenna
 
 If you plan to use the launchd plist, install the sudoers rule first so the wrapper can self-sudo.
 
+If you want the GUI stop button to work without a password, add the stop script:
+
+```
+sudo sh -c 'printf "%s\n" "chronostriker1 ALL=(root) NOPASSWD: /Users/chronostriker1/git/Gehenna/scripts/gehenna-stop.sh" >> /etc/sudoers.d/gehenna'
+sudo chmod 0440 /etc/sudoers.d/gehenna
+```
+
 ## Potential Entitlements
 - If app is sandboxed, evaluate USB/HID entitlements as needed.
 - If not sandboxed, rely on user-granted permissions and code signing.

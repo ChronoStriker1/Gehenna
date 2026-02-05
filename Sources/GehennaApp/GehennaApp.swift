@@ -125,9 +125,9 @@ struct StatusView: View {
   }
 
   private func stopDaemon() {
+    let scriptURL = repoRoot().appendingPathComponent("scripts/gehenna-stop.sh")
     let process = Process()
-    process.executableURL = URL(fileURLWithPath: "/usr/bin/pkill")
-    process.arguments = ["-f", "GehennaDaemon"]
+    process.executableURL = scriptURL
     do {
       try process.run()
       status = "Stop signal sent."
