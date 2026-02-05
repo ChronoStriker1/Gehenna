@@ -296,6 +296,12 @@ struct KeymapView: View {
   @State private var layoutRows: [[String]] = []
   @State private var labels: [String: String] = [:]
   @State private var status = "Not loaded"
+  @State private var profilesConfig: ProfilesConfig?
+  @State private var selectedProfileId: UUID?
+  @State private var selectedLayer = "1"
+  @State private var editingKeyId: String?
+  @State private var editingAction: Action?
+  @State private var showEditor = false
 
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
@@ -304,13 +310,7 @@ struct KeymapView: View {
         .bold()
       Text("Windows-style layout for the Tartarus Pro.")
         .foregroundStyle(.secondary)
-      HStack(spacing: 12) {
-        Button("Load Default Layout") {
-          loadMapping()
-        }
-        Text(status)
-          .foregroundStyle(.secondary)
-      }
+      controls
       if layoutRows.isEmpty {
         Text("No layout loaded yet.")
           .foregroundStyle(.secondary)
@@ -319,10 +319,22 @@ struct KeymapView: View {
           ForEach(layoutRows.indices, id: \.self) { rowIndex in
             HStack(spacing: 8) {
               ForEach(layoutRows[rowIndex], id: \.self) { key in
-                Text(labels[key] ?? key)
-                  .frame(width: 90, height: 44)
+                let actionLabel = actionDescription(for: key)
+                Button {
+                  beginEdit(keyId: key)
+                } label: {
+                  VStack(spacing: 4) {
+                    Text(labels[key] ?? key)
+                      .font(.caption)
+                      .foregroundStyle(.secondary)
+                    Text(actionLabel)
+                      .font(.callout)
+                      .lineLimit(1)
+                  }
+                  .frame(width: 110, height: 54)
                   .background(Color(.controlBackgroundColor))
                   .cornerRadius(8)
+                }
               }
             }
           }
@@ -331,7 +343,56 @@ struct KeymapView: View {
       Spacer()
     }
     .padding(24)
-    .onAppear(perform: loadMapping)
+    .onAppear {
+      loadMapping()
+      loadProfiles()
+    }
+    .sheet(isPresented: $showEditor) {
+      if let keyId = editingKeyId {
+        KeyActionEditor(
+          keyId: keyId,
+          action: editingAction,
+          onSave: { newAction in
+            applyAction(newAction, for: keyId)
+          },
+          onCancel: {
+            showEditor = false
+          }
+        )
+      }
+    }
+  }
+
+  private var controls: some View {
+    VStack(alignment: .leading, spacing: 8) {
+      HStack(spacing: 12) {
+        Button("Load Default Layout") {
+          loadMapping()
+        }
+        Button("Reload Profiles") {
+          loadProfiles()
+        }
+        Text(status)
+          .foregroundStyle(.secondary)
+      }
+      HStack(spacing: 12) {
+        Picker("Profile", selection: $selectedProfileId) {
+          ForEach(profilesConfig?.profiles ?? [], id: \.id) { profile in
+            Text(profile.name).tag(Optional(profile.id))
+          }
+        }
+        .frame(width: 220)
+        Picker("Layer", selection: $selectedLayer) {
+          Text("1").tag("1")
+          Text("2").tag("2")
+          Text("3").tag("3")
+        }
+        .frame(width: 120)
+        Button("Set Active") {
+          setActiveProfile()
+        }
+      }
+    }
   }
 
   private func loadMapping() {
@@ -345,6 +406,211 @@ struct KeymapView: View {
     } catch {
       status = "Failed: \(error.localizedDescription)"
     }
+  }
+
+  private func loadProfiles() {
+    let loader = ProfilesLoader()
+    let url = profilesURL()
+    do {
+      let config = try loader.load(from: url)
+      profilesConfig = config
+      if selectedProfileId == nil {
+        selectedProfileId = config.activeProfileId ?? config.profiles.first?.id
+      }
+      status = "Loaded profiles"
+    } catch {
+      status = "Failed profiles: \(error.localizedDescription)"
+    }
+  }
+
+  private func profilesURL() -> URL {
+    let fm = FileManager.default
+    if let appSupport = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
+      let path = appSupport.appendingPathComponent("Gehenna", isDirectory: true)
+        .appendingPathComponent("profiles.json")
+      if fm.fileExists(atPath: path.path) {
+        return path
+      }
+    }
+    return repoRoot().appendingPathComponent("configs/profiles.json")
+  }
+
+  private func writeProfiles(_ config: ProfilesConfig) {
+    let fm = FileManager.default
+    let appSupport = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first
+    let base = appSupport?.appendingPathComponent("Gehenna", isDirectory: true)
+    if let base {
+      try? fm.createDirectory(at: base, withIntermediateDirectories: true)
+      let url = base.appendingPathComponent("profiles.json")
+      let encoder = JSONEncoder()
+      encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
+      if let data = try? encoder.encode(config) {
+        try? data.write(to: url, options: .atomic)
+        status = "Saved profiles"
+        return
+      }
+    }
+    let fallback = repoRoot().appendingPathComponent("configs/profiles.json")
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
+    if let data = try? encoder.encode(config) {
+      try? data.write(to: fallback, options: .atomic)
+      status = "Saved profiles (fallback)"
+    }
+  }
+
+  private func currentProfile() -> LayeredProfile? {
+    guard let config = profilesConfig else { return nil }
+    if let id = selectedProfileId {
+      return config.profiles.first { $0.id == id }
+    }
+    return config.profiles.first
+  }
+
+  private func actionDescription(for keyId: String) -> String {
+    guard let profile = currentProfile(),
+          let layer = profile.layers[selectedLayer],
+          let action = layer[keyId] else {
+      return "Unassigned"
+    }
+    switch action.type {
+    case .disabled:
+      return "Disabled"
+    case .key:
+      let mods = action.modifiers?.map { $0.rawValue }.joined(separator: "+") ?? ""
+      let code = action.keyCode ?? 0
+      if mods.isEmpty {
+        return "Key \(code)"
+      }
+      return "\(mods)+\(code)"
+    case .macro:
+      return "Macro"
+    }
+  }
+
+  private func beginEdit(keyId: String) {
+    editingKeyId = keyId
+    if let profile = currentProfile(),
+       let layer = profile.layers[selectedLayer],
+       let action = layer[keyId] {
+      editingAction = action
+    } else {
+      editingAction = Action(type: .disabled)
+    }
+    showEditor = true
+  }
+
+  private func applyAction(_ action: Action, for keyId: String) {
+    guard var config = profilesConfig,
+          let profileIndex = config.profiles.firstIndex(where: { $0.id == selectedProfileId }) else {
+      return
+    }
+    var profile = config.profiles[profileIndex]
+    var layer = profile.layers[selectedLayer] ?? [:]
+    layer[keyId] = action
+    var layers = profile.layers
+    layers[selectedLayer] = layer
+    profile = LayeredProfile(
+      id: profile.id,
+      name: profile.name,
+      perAppBundleId: profile.perAppBundleId,
+      layers: layers
+    )
+    var profiles = config.profiles
+    profiles[profileIndex] = profile
+    config = ProfilesConfig(version: config.version, activeProfileId: config.activeProfileId, profiles: profiles)
+    profilesConfig = config
+    writeProfiles(config)
+    DaemonController.shared.reloadConfigs()
+    showEditor = false
+  }
+
+  private func setActiveProfile() {
+    guard var config = profilesConfig, let selectedProfileId else { return }
+    config = ProfilesConfig(version: config.version, activeProfileId: selectedProfileId, profiles: config.profiles)
+    profilesConfig = config
+    writeProfiles(config)
+    DaemonController.shared.reloadConfigs()
+    status = "Active profile updated"
+  }
+}
+
+struct KeyActionEditor: View {
+  let keyId: String
+  @State private var actionType: ActionType
+  @State private var keyCodeText: String
+  @State private var modifiers: Set<HIDModifier>
+  let onSave: (Action) -> Void
+  let onCancel: () -> Void
+
+  init(
+    keyId: String,
+    action: Action?,
+    onSave: @escaping (Action) -> Void,
+    onCancel: @escaping () -> Void
+  ) {
+    self.keyId = keyId
+    _actionType = State(initialValue: action?.type ?? .disabled)
+    _keyCodeText = State(initialValue: action?.keyCode.map(String.init) ?? "")
+    _modifiers = State(initialValue: Set(action?.modifiers ?? []))
+    self.onSave = onSave
+    self.onCancel = onCancel
+  }
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 16) {
+      Text("Edit \(keyId)")
+        .font(.title2)
+        .bold()
+      Picker("Action", selection: $actionType) {
+        Text("Key").tag(ActionType.key)
+        Text("Disabled").tag(ActionType.disabled)
+      }
+      .pickerStyle(.segmented)
+
+      if actionType == .key {
+        TextField("Key code (HID usage)", text: $keyCodeText)
+          .textFieldStyle(.roundedBorder)
+        Text("Modifiers")
+          .font(.headline)
+        VStack(alignment: .leading, spacing: 6) {
+          ForEach(HIDModifier.allCases, id: \.self) { modifier in
+            Toggle(modifier.rawValue, isOn: Binding(
+              get: { modifiers.contains(modifier) },
+              set: { isOn in
+                if isOn {
+                  modifiers.insert(modifier)
+                } else {
+                  modifiers.remove(modifier)
+                }
+              }
+            ))
+          }
+        }
+      }
+
+      HStack(spacing: 12) {
+        Button("Save") {
+          let action: Action
+          switch actionType {
+          case .disabled:
+            action = Action(type: .disabled)
+          case .key:
+            let code = Int(keyCodeText) ?? 0
+            action = Action(type: .key, keyCode: code, modifiers: Array(modifiers))
+          case .macro:
+            action = Action(type: .macro)
+          }
+          onSave(action)
+        }
+        Button("Cancel") {
+          onCancel()
+        }
+      }
+      Spacer()
+    }
+    .padding(24)
+    .frame(minWidth: 420, minHeight: 360)
   }
 }
 
