@@ -33,6 +33,40 @@ struct InputEvent {
   let layerModifier: Bool
 }
 
+final class RuntimeState {
+  private let queue = DispatchQueue(label: "gehenna.runtime")
+  private var activeProfile: LayeredProfile?
+  private var macroLookup: [UUID: Macro]
+
+  init(activeProfile: LayeredProfile?, macroLookup: [UUID: Macro]) {
+    self.activeProfile = activeProfile
+    self.macroLookup = macroLookup
+  }
+
+  func update(activeProfile: LayeredProfile?, macroLookup: [UUID: Macro]) {
+    queue.sync {
+      self.activeProfile = activeProfile
+      self.macroLookup = macroLookup
+    }
+  }
+
+  func snapshot() -> (LayeredProfile?, [UUID: Macro]) {
+    queue.sync {
+      (activeProfile, macroLookup)
+    }
+  }
+}
+
+struct DaemonStatus: Codable {
+  let pid: Int
+  let deviceName: String
+  let connected: Bool
+  let layer: Int
+  let layerModifier: Bool
+  let lastEvent: String?
+  let updatedAt: String
+}
+
 private let modifierOrder: [HIDModifier] = [
   .leftControl,
   .leftShift,
@@ -258,6 +292,41 @@ func defaultMacrosURL() -> URL? {
   }
 
   return nil
+}
+
+func statusFileURL() -> URL? {
+  let fm = FileManager.default
+  if let sudoUser = ProcessInfo.processInfo.environment["SUDO_USER"],
+     let pw = getpwnam(sudoUser) {
+    let home = String(cString: pw.pointee.pw_dir)
+    let base = URL(fileURLWithPath: home)
+      .appendingPathComponent("Library", isDirectory: true)
+      .appendingPathComponent("Application Support", isDirectory: true)
+    let dir = base.appendingPathComponent("Gehenna", isDirectory: true)
+    try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
+    return dir.appendingPathComponent("status.json")
+  }
+
+  guard let appSupport = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
+    return nil
+  }
+  let dir = appSupport.appendingPathComponent("Gehenna", isDirectory: true)
+  try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
+  return dir.appendingPathComponent("status.json")
+}
+
+func writeStatus(_ status: DaemonStatus) {
+  guard let url = statusFileURL() else { return }
+  let encoder = JSONEncoder()
+  encoder.outputFormatting = [.prettyPrinted, .withoutEscapingSlashes]
+  guard let data = try? encoder.encode(status) else { return }
+  let tmp = url.appendingPathExtension("tmp")
+  do {
+    try data.write(to: tmp, options: .atomic)
+    _ = try FileManager.default.replaceItemAt(url, withItemAt: tmp)
+  } catch {
+    try? data.write(to: url, options: .atomic)
+  }
 }
 
 func loadMapping(config: DaemonConfig) throws -> DeviceMapping {
@@ -521,8 +590,13 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
   let match = HIDMatch(vendorId: mapping.device.vendorId, productId: mapping.device.productId)
   let devices = try HIDEnumerator().openDevices(match: match)
 
+  var currentLayer = 1
+  var layerHoldActive = false
+  var layerUsedAsModifier = false
+
   if devices.isEmpty {
     print("No HID devices found for vendorId=\(mapping.device.vendorId) productId=\(mapping.device.productId)")
+    publishStatus(lastEvent: "no devices found")
     return
   }
 
@@ -531,13 +605,12 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
   var listeners: [AnyObject] = []
   var previousKeys: [Int: Set<InputKey>] = [:]
   var previousModifiers: [Int: Set<HIDModifier>] = [:]
-  var currentLayer = 1
-  var layerHoldActive = false
-  var layerUsedAsModifier = false
+  // currentLayer/layerHoldActive initialized above for status reporting.
   let injector = EventInjector()
   let macroRunner = MacroRunner(injector: injector)
   let macroLookup = Dictionary(uniqueKeysWithValues: macros.macros.map { ($0.id, $0) })
   let active = profiles.flatMap { activeProfile(from: $0) }
+  let runtime = RuntimeState(activeProfile: active, macroLookup: macroLookup)
   let enableOutput = config.enableOutput && active != nil
   let suppressor = EventSuppressor(window: 0.15)
   let suppressedKeys = SuppressedKeySet()
@@ -551,12 +624,27 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
     print("Output enabled but no profiles loaded. Output will remain disabled.")
   }
 
+  func publishStatus(lastEvent: String?) {
+    let status = DaemonStatus(
+      pid: Int(getpid()),
+      deviceName: mapping.device.name,
+      connected: !devices.isEmpty,
+      layer: currentLayer,
+      layerModifier: layerHoldActive,
+      lastEvent: lastEvent,
+      updatedAt: ISO8601DateFormatter().string(from: Date())
+    )
+    writeStatus(status)
+  }
+
   func emit(_ event: InputEvent) {
     if let value = event.value {
       print("[\(event.state)] \(event.inputId) value=\(value) layer=\(event.layer) mod=\(event.layerModifier)")
     } else {
       print("[\(event.state)] \(event.inputId) layer=\(event.layer) mod=\(event.layerModifier)")
     }
+    let suffix = event.value != nil ? " value=\(event.value ?? 0)" : ""
+    publishStatus(lastEvent: "\(event.inputId) \(event.state)\(suffix)")
   }
 
   func toggleLayerIfNeeded() {
@@ -565,6 +653,7 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
     }
     currentLayer = currentLayer % 3 + 1
     print("[layer] switched to \(currentLayer)")
+    publishStatus(lastEvent: "layer switched to \(currentLayer)")
   }
 
   func effectiveLayer() -> Int {
@@ -575,7 +664,8 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
   }
 
   func handleAction(inputId: String, state: String) {
-    guard enableOutput, let profile = active else {
+    let (profile, macroLookup) = runtime.snapshot()
+    guard enableOutput, let profile else {
       return
     }
 
@@ -872,6 +962,7 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
 
   if listeners.isEmpty {
     print("No listeners started. Check mapping inputs.")
+    publishStatus(lastEvent: "no listeners started")
     return
   }
 
@@ -883,7 +974,21 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
   }
   signalSource.resume()
 
+  let reloadSource = DispatchSource.makeSignalSource(signal: SIGUSR1, queue: .main)
+  signal(SIGUSR1, SIG_IGN)
+  reloadSource.setEventHandler {
+    let profiles = try? loadProfiles(config: config)
+    let macros = (try? loadMacros(config: config)) ?? MacroLibrary(macros: [])
+    let updatedProfile = profiles.flatMap { activeProfile(from: $0) }
+    let updatedMacros = Dictionary(uniqueKeysWithValues: macros.macros.map { ($0.id, $0) })
+    runtime.update(activeProfile: updatedProfile, macroLookup: updatedMacros)
+    print("[reload] profiles and macros reloaded")
+    publishStatus(lastEvent: "reloaded profiles/macros")
+  }
+  reloadSource.resume()
+
   print("GehennaDaemon running. Ctrl+C to stop.")
+  publishStatus(lastEvent: "daemon started")
   CFRunLoopRun()
 }
 

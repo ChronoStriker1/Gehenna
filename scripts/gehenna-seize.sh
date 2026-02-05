@@ -2,7 +2,12 @@
 set -eu
 
 ROOT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)"
-LOG_DIR="$HOME/Library/Logs/Gehenna"
+if [ -n "${SUDO_USER:-}" ]; then
+  USER_HOME="$(eval echo "~$SUDO_USER")"
+else
+  USER_HOME="$HOME"
+fi
+LOG_DIR="$USER_HOME/Library/Logs/Gehenna"
 LOG_FILE="$LOG_DIR/daemon.log"
 BUILD_DIR="$ROOT_DIR/.build/arm64-apple-macosx/debug"
 BIN_PATH="$BUILD_DIR/GehennaDaemon"

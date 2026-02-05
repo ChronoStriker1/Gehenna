@@ -15,6 +15,9 @@ final class DaemonController: ObservableObject {
   @Published var status = "Idle"
   @Published var isRunning = false
   @Published var logText = "Log output will appear here."
+  @Published var currentLayer = 1
+  @Published var deviceConnected = false
+  @Published var lastEvent: String? = nil
 
   @Published var startMinimized: Bool {
     didSet { UserDefaults.standard.set(startMinimized, forKey: AppSettingKey.startMinimized) }
@@ -77,6 +80,18 @@ final class DaemonController: ObservableObject {
     }
   }
 
+  func reloadConfigs() {
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: "/usr/bin/pkill")
+    process.arguments = ["-USR1", "-f", "GehennaDaemon"]
+    do {
+      try process.run()
+      status = "Reload signal sent."
+    } catch {
+      status = "Failed to reload: \(error.localizedDescription)"
+    }
+  }
+
   func refreshStatus() {
     let process = Process()
     process.executableURL = URL(fileURLWithPath: "/usr/bin/pgrep")
@@ -93,6 +108,16 @@ final class DaemonController: ObservableObject {
       isRunning = false
       status = "Stopped"
     }
+
+    let statusURL = FileManager.default
+      .homeDirectoryForCurrentUser
+      .appendingPathComponent("Library/Application Support/Gehenna/status.json")
+    if let data = try? Data(contentsOf: statusURL),
+       let decoded = try? JSONDecoder().decode(DaemonStatus.self, from: data) {
+      currentLayer = decoded.layer
+      deviceConnected = decoded.connected
+      lastEvent = decoded.lastEvent
+    }
   }
 
   func refreshLog() {
@@ -108,6 +133,16 @@ final class DaemonController: ObservableObject {
     let tail = lines.suffix(200).joined(separator: "\n")
     logText = tail
   }
+}
+
+struct DaemonStatus: Codable {
+  let pid: Int
+  let deviceName: String
+  let connected: Bool
+  let layer: Int
+  let layerModifier: Bool
+  let lastEvent: String?
+  let updatedAt: String
 }
 
 struct ContentView: View {
@@ -138,6 +173,7 @@ struct StatusView: View {
       Divider()
       controls
       statusRow
+      deviceRow
       preferences
       logViewer
       Spacer()
@@ -167,6 +203,9 @@ struct StatusView: View {
         Button("Stop Daemon") {
           controller.stopDaemon()
         }
+        Button("Reload Configs") {
+          controller.reloadConfigs()
+        }
         Button("Refresh Status") {
           controller.refreshStatus()
           controller.refreshLog()
@@ -186,6 +225,18 @@ struct StatusView: View {
     }
   }
 
+  private var deviceRow: some View {
+    HStack(spacing: 12) {
+      Text("Device: \(controller.deviceConnected ? "Connected" : "Disconnected")")
+      Text("Layer: \(controller.currentLayer)")
+      if let lastEvent = controller.lastEvent {
+        Text("Last: \(lastEvent)")
+      }
+    }
+    .font(.callout)
+    .foregroundStyle(.secondary)
+  }
+
   private var preferences: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text("Preferences")
@@ -201,7 +252,7 @@ struct StatusView: View {
       Text("Daemon Log")
         .font(.headline)
       ScrollView {
-        Text(controller.logText)
+      Text(controller.logText)
           .font(.system(.footnote, design: .monospaced))
           .frame(maxWidth: .infinity, alignment: .leading)
           .padding(12)
@@ -372,6 +423,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     menu.addItem(NSMenuItem(title: "Show Gehenna", action: #selector(showApp), keyEquivalent: ""))
     menu.addItem(NSMenuItem(title: "Start Daemon", action: #selector(startDaemon), keyEquivalent: ""))
     menu.addItem(NSMenuItem(title: "Stop Daemon", action: #selector(stopDaemon), keyEquivalent: ""))
+    menu.addItem(NSMenuItem(title: "Reload Configs", action: #selector(reloadConfigs), keyEquivalent: ""))
     menu.addItem(NSMenuItem.separator())
     menu.addItem(NSMenuItem(title: "Quit Gehenna", action: #selector(quitApp), keyEquivalent: "q"))
     menu.items.forEach { $0.target = self }
@@ -390,6 +442,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
   @objc private func stopDaemon() {
     controller.stopDaemon()
+  }
+
+  @objc private func reloadConfigs() {
+    controller.reloadConfigs()
   }
 
   @objc private func quitApp() {
