@@ -692,10 +692,26 @@ struct MacrosView: View {
 }
 
 private func repoRoot() -> URL {
-  URL(fileURLWithPath: #file)
+  let fileRoot = URL(fileURLWithPath: #file)
     .deletingLastPathComponent()
     .deletingLastPathComponent()
     .deletingLastPathComponent()
+  if FileManager.default.fileExists(atPath: fileRoot.appendingPathComponent("configs").path) {
+    return fileRoot
+  }
+
+  if let execPath = Bundle.main.executableURL {
+    var current = execPath.deletingLastPathComponent()
+    for _ in 0..<6 {
+      let candidate = current.appendingPathComponent("configs")
+      if FileManager.default.fileExists(atPath: candidate.path) {
+        return current
+      }
+      current = current.deletingLastPathComponent()
+    }
+  }
+
+  return URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
 }
 
 @MainActor
