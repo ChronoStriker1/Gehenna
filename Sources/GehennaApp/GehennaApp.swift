@@ -362,7 +362,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
   private func setupStatusItem() {
     let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-    item.button?.image = NSImage(systemSymbolName: "keyboard", accessibilityDescription: "Gehenna")
+    if let image = NSImage(systemSymbolName: "square.grid.3x3", accessibilityDescription: "Gehenna") {
+      image.isTemplate = true
+      item.button?.image = image
+    } else {
+      item.button?.title = "G"
+    }
     let menu = NSMenu()
     menu.addItem(NSMenuItem(title: "Show Gehenna", action: #selector(showApp), keyEquivalent: ""))
     menu.addItem(NSMenuItem(title: "Start Daemon", action: #selector(startDaemon), keyEquivalent: ""))
