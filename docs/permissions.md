@@ -20,6 +20,15 @@ sudo swift run GehennaDaemon --enable-output --seize
 
 `--seize` is strict by default. Use `--seize-fallback` to continue without seizing if strict open fails.
 
+### Passwordless Wrapper (Optional)
+You can install a sudoers rule and use the wrapper script to avoid typing a password each run:
+
+```
+sudo sh -c 'printf "%s\n" "# Gehenna Tartarus helper" "# Allow running the seize wrapper without a password" "chronostriker1 ALL=(root) NOPASSWD: /Users/chronostriker1/git/Gehenna/scripts/gehenna-seize.sh" > /etc/sudoers.d/gehenna'
+sudo chmod 0440 /etc/sudoers.d/gehenna
+/Users/chronostriker1/git/Gehenna/scripts/gehenna-seize.sh
+```
+
 ## Potential Entitlements
 - If app is sandboxed, evaluate USB/HID entitlements as needed.
 - If not sandboxed, rely on user-granted permissions and code signing.
