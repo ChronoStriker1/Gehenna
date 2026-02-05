@@ -109,15 +109,17 @@ struct StatusView: View {
     do {
       try process.run()
       status = "Launching daemon..."
-      Task {
-        let data = output.fileHandleForReading.readDataToEndOfFile()
-        if let text = String(data: data, encoding: .utf8), !text.isEmpty {
-          status = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        } else {
-          status = "Daemon started."
+      let handle = output.fileHandleForReading
+      handle.readabilityHandler = { fileHandle in
+        let data = fileHandle.availableData
+        guard !data.isEmpty, let text = String(data: data, encoding: .utf8) else {
+          return
         }
-        refreshStatus()
-        refreshLog()
+        DispatchQueue.main.async {
+          status = text.trimmingCharacters(in: .whitespacesAndNewlines)
+          refreshStatus()
+          refreshLog()
+        }
       }
     } catch {
       status = "Failed to start daemon: \(error.localizedDescription)"
