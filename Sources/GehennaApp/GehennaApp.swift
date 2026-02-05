@@ -20,7 +20,6 @@ struct StatusView: View {
   @State private var status = "Idle"
   @State private var isRunning = false
   @State private var logText = "Log output will appear here."
-  @State private var liveLog = ""
   @State private var timer = Timer.publish(every: 2.0, on: .main, in: .common).autoconnect()
 
   var body: some View {
@@ -121,7 +120,6 @@ struct StatusView: View {
           return
         }
         DispatchQueue.main.async {
-          appendLiveLog(text)
           status = text.trimmingCharacters(in: .whitespacesAndNewlines)
           refreshStatus()
           refreshLog()
@@ -169,27 +167,12 @@ struct StatusView: View {
       .appendingPathComponent("Library/Logs/Gehenna/daemon.log")
     guard let data = try? Data(contentsOf: logURL),
           let text = String(data: data, encoding: .utf8) else {
-      if liveLog.isEmpty {
-        logText = "No log found yet."
-      } else {
-        logText = liveLog
-      }
+      logText = "No log found yet."
       return
     }
     let lines = text.split(separator: "\n", omittingEmptySubsequences: false)
     let tail = lines.suffix(200).joined(separator: "\n")
-    if liveLog.isEmpty {
-      logText = tail
-    } else {
-      logText = tail + "\n" + liveLog
-    }
-  }
-
-  private func appendLiveLog(_ chunk: String) {
-    liveLog.append(chunk)
-    let lines = liveLog.split(separator: "\n", omittingEmptySubsequences: false)
-    liveLog = lines.suffix(200).joined(separator: "\n")
-    logText = liveLog
+    logText = tail
   }
 }
 
