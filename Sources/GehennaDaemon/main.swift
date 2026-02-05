@@ -9,6 +9,7 @@ struct DaemonConfig {
   let macrosPath: String?
   let enableOutput: Bool
   let seize: Bool
+  let suppressMapped: Bool
 }
 
 struct InputKey: Hashable {
@@ -133,6 +134,7 @@ func parseArgs() -> DaemonConfig {
   var macrosPath: String?
   var enableOutput = false
   var seize = false
+  var suppressMapped = false
   var index = 0
   while index < args.count {
     let arg = args[index]
@@ -154,8 +156,11 @@ func parseArgs() -> DaemonConfig {
       }
     case "--enable-output":
       enableOutput = true
+      suppressMapped = true
     case "--seize":
       seize = true
+    case "--allow-native":
+      suppressMapped = false
     default:
       break
     }
@@ -167,7 +172,8 @@ func parseArgs() -> DaemonConfig {
     profilesPath: profilesPath,
     macrosPath: macrosPath,
     enableOutput: enableOutput,
-    seize: seize
+    seize: seize,
+    suppressMapped: suppressMapped
   )
 }
 
@@ -296,6 +302,7 @@ func cgFlags(from modifiers: [HIDModifier]?) -> CGEventFlags {
 }
 
 final class EventInjector: @unchecked Sendable {
+  static let sourceTag: Int64 = 0x4745484E
   private let source = CGEventSource(stateID: .hidSystemState)
 
   func sendKey(usage: Int, modifiers: [HIDModifier]?, isDown: Bool) {
@@ -309,6 +316,7 @@ final class EventInjector: @unchecked Sendable {
     }
 
     event.flags = cgFlags(from: modifiers)
+    event.setIntegerValueField(.eventSourceUserData, value: EventInjector.sourceTag)
     event.post(tap: .cghidEventTap)
   }
 }
@@ -537,6 +545,10 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
         return Unmanaged.passRetained(event)
       }
 
+      if event.getIntegerValueField(.eventSourceUserData) == EventInjector.sourceTag {
+        return Unmanaged.passRetained(event)
+      }
+
       let keyCode = CGKeyCode(event.getIntegerValueField(.keyboardEventKeycode))
       guard let usage = keyCodeToUsage(keyCode) else {
         return Unmanaged.passRetained(event)
@@ -549,9 +561,14 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
         InputKey(interface: 0, usagePage: 7, usage: usage, modifiers: modifiers)
       ]
 
-      for key in candidates {
-        if suppressor.shouldSuppress(key) {
-          return nil
+      if config.suppressMapped {
+        for key in candidates {
+          if lookup[key] != nil {
+            return nil
+          }
+          if suppressor.shouldSuppress(key) {
+            return nil
+          }
         }
       }
 
