@@ -3,11 +3,14 @@ import GehennaCore
 import SwiftUI
 import Darwin
 import ApplicationServices
+import ServiceManagement
 
 enum AppSettingKey {
   static let startMinimized = "gehenna.startMinimized"
   static let autoStartDaemon = "gehenna.autoStartDaemon"
   static let closeToTray = "gehenna.closeToTray"
+  static let runAtLogin = "gehenna.runAtLogin"
+  static let hideDockIcon = "gehenna.hideDockIcon"
   static let logInputEvents = "gehenna.logInputEvents"
   static let startupLightingBrightness = "gehenna.startupLightingBrightness"
   static let startupLightingEffect = "gehenna.startupLightingEffect"
@@ -72,6 +75,19 @@ final class DaemonController: ObservableObject {
   @Published var closeToTray: Bool {
     didSet { UserDefaults.standard.set(closeToTray, forKey: AppSettingKey.closeToTray) }
   }
+  @Published var runAtLogin: Bool {
+    didSet {
+      UserDefaults.standard.set(runAtLogin, forKey: AppSettingKey.runAtLogin)
+      guard oldValue != runAtLogin, !syncingRunAtLogin else { return }
+      applyRunAtLoginPreference(runAtLogin)
+    }
+  }
+  @Published var hideDockIcon: Bool {
+    didSet {
+      UserDefaults.standard.set(hideDockIcon, forKey: AppSettingKey.hideDockIcon)
+      applyDockIconVisibility()
+    }
+  }
   @Published var logInputEvents: Bool {
     didSet { UserDefaults.standard.set(logInputEvents, forKey: AppSettingKey.logInputEvents) }
   }
@@ -94,11 +110,18 @@ final class DaemonController: ObservableObject {
   @Published var lightingReadbackHex: String? = nil
 
   private var timer: Timer?
+  private var syncingRunAtLogin = false
 
   private init() {
     startMinimized = UserDefaults.standard.bool(forKey: AppSettingKey.startMinimized)
     autoStartDaemon = UserDefaults.standard.bool(forKey: AppSettingKey.autoStartDaemon)
     closeToTray = UserDefaults.standard.bool(forKey: AppSettingKey.closeToTray)
+    if let storedRunAtLogin = UserDefaults.standard.object(forKey: AppSettingKey.runAtLogin) as? Bool {
+      runAtLogin = storedRunAtLogin
+    } else {
+      runAtLogin = Self.currentSystemRunAtLoginState()
+    }
+    hideDockIcon = UserDefaults.standard.bool(forKey: AppSettingKey.hideDockIcon)
     logInputEvents = UserDefaults.standard.bool(forKey: AppSettingKey.logInputEvents)
     let storedBrightness = UserDefaults.standard.object(forKey: AppSettingKey.startupLightingBrightness) as? Int
     startupLightingBrightness = min(255, max(0, storedBrightness ?? 180))
@@ -108,6 +131,49 @@ final class DaemonController: ObservableObject {
     startupLightingEffectColor2 = UserDefaults.standard.string(forKey: AppSettingKey.startupLightingEffectColor2) ?? "0000FF"
     let storedSpeed = UserDefaults.standard.object(forKey: AppSettingKey.startupLightingEffectSpeed) as? Int
     startupLightingEffectSpeed = min(255, max(0, storedSpeed ?? 2))
+  }
+
+  func applyDockIconVisibility() {
+    let policy: NSApplication.ActivationPolicy = hideDockIcon ? .accessory : .regular
+    _ = NSApp.setActivationPolicy(policy)
+  }
+
+  private static func currentSystemRunAtLoginState() -> Bool {
+    if #available(macOS 13.0, *) {
+      switch SMAppService.mainApp.status {
+      case .enabled, .requiresApproval:
+        return true
+      default:
+        return false
+      }
+    }
+    return false
+  }
+
+  private func applyRunAtLoginPreference(_ enabled: Bool) {
+    guard #available(macOS 13.0, *) else {
+      status = "Run at login is unavailable on this macOS version."
+      return
+    }
+
+    do {
+      if enabled {
+        try SMAppService.mainApp.register()
+      } else {
+        try SMAppService.mainApp.unregister()
+      }
+      syncRunAtLoginFromSystem()
+      status = enabled ? "Run at login enabled." : "Run at login disabled."
+    } catch {
+      status = "Failed to update run at login: \(error.localizedDescription)"
+      syncRunAtLoginFromSystem()
+    }
+  }
+
+  private func syncRunAtLoginFromSystem() {
+    syncingRunAtLogin = true
+    runAtLogin = Self.currentSystemRunAtLoginState()
+    syncingRunAtLogin = false
   }
 
   func startAutoRefresh() {
@@ -801,6 +867,8 @@ struct StatusView: View {
       Toggle("Start in system tray", isOn: $controller.startMinimized)
       Toggle("Auto-start daemon on launch", isOn: $controller.autoStartDaemon)
       Toggle("Close button sends to tray", isOn: $controller.closeToTray)
+      Toggle("Run at login", isOn: $controller.runAtLogin)
+      Toggle("Hide app from Dock", isOn: $controller.hideDockIcon)
       Toggle("Log input events in console", isOn: $controller.logInputEvents)
     }
   }
@@ -3031,6 +3099,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
   func applicationDidFinishLaunching(_ notification: Notification) {
     _ = signal(SIGPIPE, SIG_IGN)
+    controller.applyDockIconVisibility()
     setupStatusItem()
     controller.startAutoRefresh()
     controller.updateActiveBundleId()
