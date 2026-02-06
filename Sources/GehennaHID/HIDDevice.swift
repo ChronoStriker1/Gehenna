@@ -1,6 +1,23 @@
 import Foundation
 import IOKit.hid
 
+public enum HIDReportTypeKind: String, Sendable, Codable, Equatable {
+  case input
+  case output
+  case feature
+
+  var ioType: IOHIDReportType {
+    switch self {
+    case .input:
+      return kIOHIDReportTypeInput
+    case .output:
+      return kIOHIDReportTypeOutput
+    case .feature:
+      return kIOHIDReportTypeFeature
+    }
+  }
+}
+
 public struct HIDElementInfo: Sendable, Codable, Equatable {
   public let type: String
   public let usagePage: Int
@@ -85,6 +102,132 @@ public final class HIDDevice {
     return size > 0 ? size : 512
   }
 
+  public func maxReportSize(for type: HIDReportTypeKind) -> Int {
+    let key: String
+    switch type {
+    case .input:
+      key = kIOHIDMaxInputReportSizeKey
+    case .output:
+      key = kIOHIDMaxOutputReportSizeKey
+    case .feature:
+      key = kIOHIDMaxFeatureReportSizeKey
+    }
+
+    let size = device.intProperty(key: key)
+    if size > 0 {
+      return size
+    }
+
+    let matchingElements = elements().filter {
+      switch type {
+      case .input:
+        return $0.type.hasPrefix("Input_")
+      case .output:
+        return $0.type == "Output"
+      case .feature:
+        return $0.type == "Feature"
+      }
+    }
+
+    if let largest = matchingElements.map({ $0.reportSize * $0.reportCount / 8 }).max(), largest > 0 {
+      return largest
+    }
+
+    return 512
+  }
+
+  public func reportIDs(for type: HIDReportTypeKind) -> [Int] {
+    let ids = elements().compactMap { element -> Int? in
+      switch type {
+      case .input:
+        return element.type.hasPrefix("Input_") ? element.reportId : nil
+      case .output:
+        return element.type == "Output" ? element.reportId : nil
+      case .feature:
+        return element.type == "Feature" ? element.reportId : nil
+      }
+    }
+    return Array(Set(ids)).sorted()
+  }
+
+  public func getReport(
+    type: HIDReportTypeKind,
+    reportId: Int,
+    length: Int? = nil,
+    openOptions: IOOptionBits = IOOptionBits(kIOHIDOptionsTypeNone)
+  ) throws -> [UInt8] {
+    let requestedLength = max(1, length ?? maxReportSize(for: type))
+
+    try open(options: openOptions)
+    defer {
+      close()
+    }
+    return try getReportOpened(type: type, reportId: reportId, length: requestedLength)
+  }
+
+  public func setReport(
+    type: HIDReportTypeKind,
+    reportId: Int,
+    bytes: [UInt8],
+    openOptions: IOOptionBits = IOOptionBits(kIOHIDOptionsTypeNone)
+  ) throws {
+    try open(options: openOptions)
+    defer {
+      close()
+    }
+    try setReportOpened(type: type, reportId: reportId, bytes: bytes)
+  }
+
+  func getReportOpened(
+    type: HIDReportTypeKind,
+    reportId: Int,
+    length: Int
+  ) throws -> [UInt8] {
+    let requestedLength = max(1, length)
+    var buffer = [UInt8](repeating: 0, count: requestedLength)
+    var reportLength = requestedLength
+
+    let result = IOHIDDeviceGetReport(
+      device,
+      type.ioType,
+      CFIndex(reportId),
+      &buffer,
+      &reportLength
+    )
+    guard result == kIOReturnSuccess else {
+      throw HIDDeviceError.reportGetFailed(result)
+    }
+
+    return Array(buffer.prefix(reportLength))
+  }
+
+  func setReportOpened(
+    type: HIDReportTypeKind,
+    reportId: Int,
+    bytes: [UInt8]
+  ) throws {
+    guard !bytes.isEmpty else {
+      throw HIDDeviceError.invalidReportData("Report payload cannot be empty.")
+    }
+
+    let result = bytes.withUnsafeBufferPointer { ptr -> IOReturn in
+      guard let base = ptr.baseAddress else {
+        return kIOReturnBadArgument
+      }
+
+      return IOHIDDeviceSetReport(
+        device,
+        type.ioType,
+        CFIndex(reportId),
+        base,
+        ptr.count
+      )
+    }
+    guard result == kIOReturnSuccess else {
+      throw HIDDeviceError.reportSetFailed(result)
+    }
+  }
+
   func open(options: IOOptionBits = IOOptionBits(kIOHIDOptionsTypeNone)) throws {
     let result = IOHIDDeviceOpen(device, options)
     guard result == kIOReturnSuccess else {
@@ -134,11 +277,20 @@ public final class HIDDevice {
 
 public enum HIDDeviceError: Error, LocalizedError {
   case deviceOpenFailed(IOReturn)
+  case reportGetFailed(IOReturn)
+  case reportSetFailed(IOReturn)
+  case invalidReportData(String)
 
   public var errorDescription: String? {
     switch self {
     case let .deviceOpenFailed(code):
       return "Failed to open HID device (IOReturn: \(code))."
+    case let .reportGetFailed(code):
+      return "Failed to read HID report (IOReturn: \(code))."
+    case let .reportSetFailed(code):
+      return "Failed to write HID report (IOReturn: \(code))."
+    case let .invalidReportData(message):
+      return message
     }
   }
 }
@@ -204,6 +356,22 @@ public final class HIDInputListener {
 
   fileprivate func handleReport(reportId: Int, report: [UInt8]) {
     handler?(HIDInputReport(reportId: reportId, bytes: report))
+  }
+
+  public func setReport(
+    type: HIDReportTypeKind,
+    reportId: Int,
+    bytes: [UInt8]
+  ) throws {
+    try device.setReportOpened(type: type, reportId: reportId, bytes: bytes)
+  }
+
+  public func getReport(
+    type: HIDReportTypeKind,
+    reportId: Int,
+    length: Int
+  ) throws -> [UInt8] {
+    try device.getReportOpened(type: type, reportId: reportId, length: length)
   }
 }
 

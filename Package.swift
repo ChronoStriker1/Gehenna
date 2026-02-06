@@ -45,7 +45,7 @@ let package = Package(
     ),
     .executableTarget(
       name: "GehennaCLI",
-      dependencies: ["GehennaHID"]
+      dependencies: ["GehennaHID", "GehennaCore"]
     ),
     .testTarget(
       name: "GehennaTests",

@@ -2,20 +2,44 @@ import AppKit
 import GehennaCore
 import SwiftUI
 import Darwin
+import ApplicationServices
 
 enum AppSettingKey {
   static let startMinimized = "gehenna.startMinimized"
   static let autoStartDaemon = "gehenna.autoStartDaemon"
   static let closeToTray = "gehenna.closeToTray"
   static let logInputEvents = "gehenna.logInputEvents"
+  static let startupLightingBrightness = "gehenna.startupLightingBrightness"
+  static let startupLightingEffect = "gehenna.startupLightingEffect"
+  static let startupLightingEffectColor1 = "gehenna.startupLightingEffectColor1"
+  static let startupLightingEffectColor2 = "gehenna.startupLightingEffectColor2"
+  static let startupLightingEffectSpeed = "gehenna.startupLightingEffectSpeed"
 }
 
 enum AppInfo {
-  static let version = "0.5.0"
+  static let version = "0.7.5"
 }
 
 struct ActiveAppMessage: Codable {
   let bundleId: String
+}
+
+struct DaemonControlRequest: Codable {
+  let command: String
+  let staticColorHex: String?
+  let brightness: Int?
+  let layer: Int?
+  let effect: String?
+  let effectColorHex1: String?
+  let effectColorHex2: String?
+  let effectSpeed: Int?
+  let readback: Bool?
+}
+
+struct DaemonControlResponse: Codable {
+  let ok: Bool
+  let message: String
+  let readbackHex: String?
 }
 
 @MainActor
@@ -51,6 +75,23 @@ final class DaemonController: ObservableObject {
   @Published var logInputEvents: Bool {
     didSet { UserDefaults.standard.set(logInputEvents, forKey: AppSettingKey.logInputEvents) }
   }
+  @Published var startupLightingBrightness: Int {
+    didSet { UserDefaults.standard.set(startupLightingBrightness, forKey: AppSettingKey.startupLightingBrightness) }
+  }
+  @Published var startupLightingEffect: String {
+    didSet { UserDefaults.standard.set(startupLightingEffect, forKey: AppSettingKey.startupLightingEffect) }
+  }
+  @Published var startupLightingEffectColor1: String {
+    didSet { UserDefaults.standard.set(startupLightingEffectColor1, forKey: AppSettingKey.startupLightingEffectColor1) }
+  }
+  @Published var startupLightingEffectColor2: String {
+    didSet { UserDefaults.standard.set(startupLightingEffectColor2, forKey: AppSettingKey.startupLightingEffectColor2) }
+  }
+  @Published var startupLightingEffectSpeed: Int {
+    didSet { UserDefaults.standard.set(startupLightingEffectSpeed, forKey: AppSettingKey.startupLightingEffectSpeed) }
+  }
+  @Published var lightingDiagnostics = "No lighting command sent yet."
+  @Published var lightingReadbackHex: String? = nil
 
   private var timer: Timer?
 
@@ -59,6 +100,14 @@ final class DaemonController: ObservableObject {
     autoStartDaemon = UserDefaults.standard.bool(forKey: AppSettingKey.autoStartDaemon)
     closeToTray = UserDefaults.standard.bool(forKey: AppSettingKey.closeToTray)
     logInputEvents = UserDefaults.standard.bool(forKey: AppSettingKey.logInputEvents)
+    let storedBrightness = UserDefaults.standard.object(forKey: AppSettingKey.startupLightingBrightness) as? Int
+    startupLightingBrightness = min(255, max(0, storedBrightness ?? 180))
+    let storedEffect = UserDefaults.standard.string(forKey: AppSettingKey.startupLightingEffect) ?? "spectrum"
+    startupLightingEffect = TartarusProLightingEffect.fromString(storedEffect)?.rawValue ?? "spectrum"
+    startupLightingEffectColor1 = UserDefaults.standard.string(forKey: AppSettingKey.startupLightingEffectColor1) ?? "00FF00"
+    startupLightingEffectColor2 = UserDefaults.standard.string(forKey: AppSettingKey.startupLightingEffectColor2) ?? "0000FF"
+    let storedSpeed = UserDefaults.standard.object(forKey: AppSettingKey.startupLightingEffectSpeed) as? Int
+    startupLightingEffectSpeed = min(255, max(0, storedSpeed ?? 2))
   }
 
   func startAutoRefresh() {
@@ -98,6 +147,21 @@ final class DaemonController: ObservableObject {
     var env = ProcessInfo.processInfo.environment
     env["GEHENNA_LOG_INPUT"] = logInputEvents ? "1" : "0"
     process.environment = env
+    var args: [String] = []
+    let brightness = min(255, max(0, startupLightingBrightness))
+    args.append(contentsOf: ["--lighting-brightness", "\(brightness)"])
+    if let effect = TartarusProLightingEffect.fromString(startupLightingEffect) {
+      args.append(contentsOf: ["--lighting-effect", effect.rawValue])
+    }
+    if let color1 = normalizeColorHex(startupLightingEffectColor1) {
+      args.append(contentsOf: ["--lighting-effect-color1", color1])
+    }
+    if let color2 = normalizeColorHex(startupLightingEffectColor2) {
+      args.append(contentsOf: ["--lighting-effect-color2", color2])
+    }
+    let speed = min(255, max(0, startupLightingEffectSpeed))
+    args.append(contentsOf: ["--lighting-effect-speed", "\(speed)"])
+    process.arguments = args
     status = "Launching daemon..."
     DispatchQueue.global(qos: .userInitiated).async { [weak self] in
       do {
@@ -370,6 +434,160 @@ final class DaemonController: ObservableObject {
       status = "Failed to clear log: \(error.localizedDescription)"
     }
   }
+
+  private func normalizeColorHex(_ raw: String) -> String? {
+    guard let color = TartarusProLightingColor.fromHexString(raw) else {
+      return nil
+    }
+    return String(format: "%02X%02X%02X", color.r, color.g, color.b)
+  }
+
+  func applyLightingBrightness(_ value: Int) {
+    let brightness = min(255, max(0, value))
+    startupLightingBrightness = brightness
+    sendLightingControl(
+      request: DaemonControlRequest(
+        command: "lighting",
+        staticColorHex: nil,
+        brightness: brightness,
+        layer: nil,
+        effect: nil,
+        effectColorHex1: nil,
+        effectColorHex2: nil,
+        effectSpeed: nil,
+        readback: false
+      ),
+      successPrefix: "Brightness applied"
+    )
+  }
+
+  func applyLightingEffect(
+    _ effect: TartarusProLightingEffect,
+    color1Hex: String?,
+    color2Hex: String?,
+    speed: Int?
+  ) {
+    let safeSpeed = min(255, max(0, speed ?? 2))
+    let normalizedColor1 = color1Hex.flatMap(normalizeColorHex)
+    let normalizedColor2 = color2Hex.flatMap(normalizeColorHex)
+    startupLightingEffect = effect.rawValue
+    if let normalizedColor1 {
+      startupLightingEffectColor1 = normalizedColor1
+    }
+    if let normalizedColor2 {
+      startupLightingEffectColor2 = normalizedColor2
+    }
+    startupLightingEffectSpeed = safeSpeed
+    sendLightingControl(
+      request: DaemonControlRequest(
+        command: "lighting",
+        staticColorHex: nil,
+        brightness: nil,
+        layer: nil,
+        effect: effect.rawValue,
+        effectColorHex1: normalizedColor1,
+        effectColorHex2: normalizedColor2,
+        effectSpeed: safeSpeed,
+        readback: false
+      ),
+      successPrefix: "Style applied"
+    )
+  }
+
+  func lightingDiagnosticsReadback() {
+    sendLightingControl(
+      request: DaemonControlRequest(
+        command: "lighting",
+        staticColorHex: nil,
+        brightness: nil,
+        layer: nil,
+        effect: nil,
+        effectColorHex1: nil,
+        effectColorHex2: nil,
+        effectSpeed: nil,
+        readback: true
+      ),
+      successPrefix: "Diagnostics"
+    )
+  }
+
+  private func controlSocketPath() -> String {
+    "/var/tmp/gehenna-control-\(getuid()).sock"
+  }
+
+  private func sendLightingControl(request: DaemonControlRequest, successPrefix: String) {
+    let fd = socket(AF_UNIX, SOCK_STREAM, 0)
+    guard fd >= 0 else {
+      lightingDiagnostics = "Lighting control socket creation failed."
+      return
+    }
+    defer {
+      close(fd)
+    }
+
+    var one: Int32 = 1
+    _ = setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &one, socklen_t(MemoryLayout<Int32>.size))
+
+    var addr = sockaddr_un()
+    addr.sun_family = sa_family_t(AF_UNIX)
+    let path = controlSocketPath()
+    let pathBytes = Array(path.utf8CString)
+    let maxLen = MemoryLayout.size(ofValue: addr.sun_path)
+    let copyLen = min(pathBytes.count, maxLen)
+    _ = withUnsafeMutablePointer(to: &addr.sun_path) { ptr in
+      ptr.withMemoryRebound(to: CChar.self, capacity: copyLen) { buf in
+        pathBytes.withUnsafeBytes { bytes in
+          memcpy(buf, bytes.baseAddress, copyLen)
+        }
+      }
+    }
+
+    let connectResult = withUnsafePointer(to: &addr) { ptr in
+      ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { saPtr in
+        Darwin.connect(fd, saPtr, socklen_t(MemoryLayout<sockaddr_un>.size))
+      }
+    }
+    guard connectResult == 0 else {
+      lightingDiagnostics = "Daemon lighting socket unavailable."
+      return
+    }
+
+    guard let payload = try? JSONEncoder().encode(request) else {
+      lightingDiagnostics = "Failed to encode lighting request."
+      return
+    }
+    _ = payload.withUnsafeBytes { ptr in
+      write(fd, ptr.baseAddress, payload.count)
+    }
+    shutdown(fd, SHUT_WR)
+
+    var data = Data()
+    var buffer = [UInt8](repeating: 0, count: 4096)
+    while true {
+      let count = read(fd, &buffer, buffer.count)
+      if count > 0 {
+        data.append(buffer, count: count)
+      } else if count < 0 && errno == EINTR {
+        continue
+      } else {
+        break
+      }
+    }
+
+    guard let response = try? JSONDecoder().decode(DaemonControlResponse.self, from: data) else {
+      lightingDiagnostics = "Lighting response decode failed."
+      return
+    }
+
+    if response.ok {
+      lightingDiagnostics = "\(successPrefix): \(response.message)"
+      lightingReadbackHex = response.readbackHex
+    } else {
+      lightingDiagnostics = "Lighting failed: \(response.message)"
+      lightingReadbackHex = nil
+    }
+  }
+
 }
 
 struct DaemonStatus: Codable {
@@ -391,12 +609,14 @@ struct ContentView: View {
 
   var body: some View {
     TabView {
-      StatusView()
-        .tabItem { Label("Status", systemImage: "waveform.path") }
       KeymapView()
         .tabItem { Label("Keymap", systemImage: "keyboard") }
       MacrosView()
         .tabItem { Label("Macros", systemImage: "bolt.horizontal") }
+      LightingView()
+        .tabItem { Label("Lighting", systemImage: "lightbulb") }
+      StatusView()
+        .tabItem { Label("Status", systemImage: "waveform.path") }
     }
     .frame(minWidth: 980, minHeight: 680)
     .onAppear {
@@ -511,8 +731,11 @@ struct StatusView: View {
         .font(.title2)
         .bold()
       HStack(spacing: 12) {
-        Button("Start Seized Daemon") {
+        Button("Start Daemon") {
           controller.runSeizedDaemon()
+        }
+        Button("Restart Daemon") {
+          controller.restartDaemon()
         }
         Button("Stop Daemon") {
           controller.stopDaemon()
@@ -605,6 +828,215 @@ struct StatusView: View {
       }
     }
   }
+}
+
+struct LightingView: View {
+  @ObservedObject private var controller = DaemonController.shared
+  @State private var liveBrightness = 180.0
+  @State private var selectedEffectRaw = TartarusProLightingEffect.spectrum.rawValue
+  @State private var liveEffectColor1 = "00FF00"
+  @State private var liveEffectColor2 = "0000FF"
+  @State private var liveEffectSpeed = 2
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 16) {
+      Text("Lighting")
+        .font(.largeTitle)
+        .bold()
+      Text("Control key and wheel lighting style and brightness.")
+        .foregroundStyle(.secondary)
+
+      HStack(spacing: 12) {
+        Picker("Style", selection: $selectedEffectRaw) {
+          ForEach(TartarusProLightingEffect.allCases, id: \.rawValue) { effect in
+            Text(effectLabel(effect)).tag(effect.rawValue)
+          }
+        }
+        .pickerStyle(.menu)
+        Button("Apply Style") {
+          guard let effect = TartarusProLightingEffect.fromString(selectedEffectRaw) else {
+            return
+          }
+          controller.applyLightingEffect(
+            effect,
+            color1Hex: liveEffectColor1,
+            color2Hex: liveEffectColor2,
+            speed: liveEffectSpeed
+          )
+        }
+      }
+
+      if effectUsesPrimaryColor {
+        HStack(spacing: 12) {
+          Text("Color 1 (RRGGBB)")
+          TextField("00FF00", text: $liveEffectColor1)
+            .textFieldStyle(.roundedBorder)
+            .frame(width: 120)
+        }
+      }
+
+      if effectUsesSecondaryColor {
+        HStack(spacing: 12) {
+          Text("Color 2 (RRGGBB)")
+          TextField("0000FF", text: $liveEffectColor2)
+            .textFieldStyle(.roundedBorder)
+            .frame(width: 120)
+        }
+      }
+
+      if effectUsesSpeed {
+        HStack(spacing: 12) {
+          Text("Speed")
+          Slider(
+            value: Binding(
+              get: { Double(liveEffectSpeed) },
+              set: { liveEffectSpeed = Int($0.rounded()) }
+            ),
+            in: speedRange,
+            step: 1
+          )
+          .frame(width: 220)
+          Text("\(liveEffectSpeed)")
+            .font(.system(.footnote, design: .monospaced))
+            .frame(width: 40, alignment: .trailing)
+        }
+        Text("Used by the current style.")
+          .font(.footnote)
+          .foregroundStyle(.secondary)
+      }
+
+      HStack(spacing: 12) {
+        Text("Brightness")
+        Slider(value: $liveBrightness, in: 0...255, step: 1)
+          .frame(width: 220)
+        Text("\(Int(liveBrightness))")
+          .font(.system(.footnote, design: .monospaced))
+          .frame(width: 40, alignment: .trailing)
+        Button("Apply") {
+          controller.applyLightingBrightness(Int(liveBrightness))
+        }
+      }
+
+      Text("Layer LEDs follow the active Tartarus layer automatically.")
+        .font(.footnote)
+        .foregroundStyle(.secondary)
+      Text("Manual layer/static LED override is disabled.")
+        .font(.footnote)
+        .foregroundStyle(.secondary)
+
+      Divider()
+      Text("Last applied settings are remembered and used when starting the daemon.")
+        .font(.footnote)
+        .foregroundStyle(.secondary)
+
+      HStack {
+        Button("Diagnostics") {
+          controller.lightingDiagnosticsReadback()
+        }
+        if let readback = controller.lightingReadbackHex {
+          Text("Readback: \(readback)")
+            .font(.system(.footnote, design: .monospaced))
+            .foregroundStyle(.secondary)
+        }
+      }
+
+      Text(controller.lightingDiagnostics)
+        .font(.footnote)
+        .foregroundStyle(.secondary)
+
+      Spacer()
+    }
+    .padding(24)
+    .onAppear {
+      liveBrightness = Double(controller.startupLightingBrightness)
+      selectedEffectRaw = controller.startupLightingEffect
+      liveEffectColor1 = controller.startupLightingEffectColor1
+      liveEffectColor2 = controller.startupLightingEffectColor2
+      liveEffectSpeed = controller.startupLightingEffectSpeed
+      clampSpeedForSelectedEffect()
+    }
+    .onChange(of: selectedEffectRaw) { _ in
+      clampSpeedForSelectedEffect()
+    }
+  }
+
+  private func effectLabel(_ effect: TartarusProLightingEffect) -> String {
+    switch effect {
+    case .off:
+      return "Off"
+    case .static:
+      return "Static"
+    case .spectrum:
+      return "Spectrum (Rainbow)"
+    case .waveLeft:
+      return "Wave Left"
+    case .waveRight:
+      return "Wave Right"
+    case .breathingRandom:
+      return "Breathing (Random)"
+    case .breathingSingle:
+      return "Breathing (Single)"
+    case .breathingDual:
+      return "Breathing (Dual)"
+    case .reactive:
+      return "Reactive"
+    case .starlightRandom:
+      return "Starlight (Random)"
+    case .starlightSingle:
+      return "Starlight (Single)"
+    case .starlightDual:
+      return "Starlight (Dual)"
+    }
+  }
+
+  private var selectedEffect: TartarusProLightingEffect {
+    TartarusProLightingEffect.fromString(selectedEffectRaw) ?? .spectrum
+  }
+
+  private var effectUsesPrimaryColor: Bool {
+    switch selectedEffect {
+    case .static, .breathingSingle, .breathingDual, .reactive, .starlightSingle, .starlightDual:
+      return true
+    default:
+      return false
+    }
+  }
+
+  private var effectUsesSecondaryColor: Bool {
+    switch selectedEffect {
+    case .breathingDual, .starlightDual:
+      return true
+    default:
+      return false
+    }
+  }
+
+  private var effectUsesSpeed: Bool {
+    switch selectedEffect {
+    case .reactive, .starlightRandom, .starlightSingle, .starlightDual:
+      return true
+    default:
+      return false
+    }
+  }
+
+  private var speedRange: ClosedRange<Double> {
+    switch selectedEffect {
+    case .starlightRandom, .starlightSingle, .starlightDual:
+      return 1...3
+    case .reactive:
+      return 1...4
+    default:
+      return 1...4
+    }
+  }
+
+  private func clampSpeedForSelectedEffect() {
+    let lower = Int(speedRange.lowerBound.rounded())
+    let upper = Int(speedRange.upperBound.rounded())
+    liveEffectSpeed = min(max(liveEffectSpeed, lower), upper)
+  }
+
 }
 
 struct KeymapView: View {
@@ -1573,9 +2005,577 @@ struct KeyActionEditor: View {
   }
 }
 
+@MainActor
+final class MacroRecorder: ObservableObject {
+  @Published private(set) var isRecording = false
+  @Published private(set) var steps: [MacroStep] = []
+
+  private var tap: CFMachPort?
+  private var source: CFRunLoopSource?
+  private var lastTimestamp: CFAbsoluteTime?
+  private static let injectorSourceTag: Int64 = 0x4745484E
+
+  func start() -> Bool {
+    guard !isRecording else { return true }
+    steps = []
+    lastTimestamp = nil
+
+    let mask = (1 << CGEventType.keyDown.rawValue) | (1 << CGEventType.keyUp.rawValue)
+    let callback: CGEventTapCallBack = { _, type, event, refcon in
+      guard let refcon else { return Unmanaged.passRetained(event) }
+      let recorder = Unmanaged<MacroRecorder>.fromOpaque(refcon).takeUnretainedValue()
+      return recorder.handle(type: type, event: event)
+    }
+
+    let refcon = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
+    tap = CGEvent.tapCreate(
+      tap: .cgSessionEventTap,
+      place: .headInsertEventTap,
+      options: .defaultTap,
+      eventsOfInterest: CGEventMask(mask),
+      callback: callback,
+      userInfo: refcon
+    )
+
+    guard let tap else { return false }
+    source = CFMachPortCreateRunLoopSource(kCFAllocatorDefault, tap, 0)
+    if let source {
+      CFRunLoopAddSource(CFRunLoopGetCurrent(), source, .commonModes)
+    }
+    CGEvent.tapEnable(tap: tap, enable: true)
+    isRecording = true
+    return true
+  }
+
+  func stop() {
+    guard isRecording else { return }
+    if let tap {
+      CGEvent.tapEnable(tap: tap, enable: false)
+    }
+    if let source {
+      CFRunLoopRemoveSource(CFRunLoopGetCurrent(), source, .commonModes)
+    }
+    tap = nil
+    source = nil
+    isRecording = false
+  }
+
+  func clear() {
+    steps = []
+    lastTimestamp = nil
+  }
+
+  private func handle(type: CGEventType, event: CGEvent) -> Unmanaged<CGEvent>? {
+    if type == .tapDisabledByTimeout || type == .tapDisabledByUserInput {
+      if let tap {
+        CGEvent.tapEnable(tap: tap, enable: true)
+      }
+      return Unmanaged.passRetained(event)
+    }
+
+    guard isRecording else {
+      return Unmanaged.passRetained(event)
+    }
+
+    if type != .keyDown && type != .keyUp {
+      return Unmanaged.passRetained(event)
+    }
+
+    let sourceTag = event.getIntegerValueField(.eventSourceUserData)
+    if sourceTag == MacroRecorder.injectorSourceTag {
+      return Unmanaged.passRetained(event)
+    }
+
+    let isRepeat = event.getIntegerValueField(.keyboardEventAutorepeat) != 0
+    if isRepeat && type == .keyDown {
+      return Unmanaged.passRetained(event)
+    }
+
+    let keyCode = Int(event.getIntegerValueField(.keyboardEventKeycode))
+    guard let usage = HIDKeyMap.usage(forKeyCode: keyCode) else {
+      return Unmanaged.passRetained(event)
+    }
+
+    if usage >= 0xE0 && usage <= 0xE7 {
+      return Unmanaged.passRetained(event)
+    }
+
+    let now = CFAbsoluteTimeGetCurrent()
+    if let last = lastTimestamp {
+      let delayMs = Int(((now - last) * 1000).rounded())
+      if delayMs > 0 {
+        steps.append(MacroStep(type: .delay, delayMs: delayMs))
+      }
+    }
+    lastTimestamp = now
+
+    let modifiers = normalizedModifiers(modifiersFromFlags(event.flags))
+    let stepType: MacroStepType = (type == .keyDown) ? .keyDown : .keyUp
+    steps.append(MacroStep(type: stepType, keyCode: usage, modifiers: modifiers.isEmpty ? nil : modifiers))
+    return Unmanaged.passRetained(event)
+  }
+
+  private func modifiersFromFlags(_ flags: CGEventFlags) -> [HIDModifier] {
+    var modifiers: [HIDModifier] = []
+    if flags.contains(.maskControl) { modifiers.append(.leftControl) }
+    if flags.contains(.maskShift) { modifiers.append(.leftShift) }
+    if flags.contains(.maskAlternate) { modifiers.append(.leftAlt) }
+    if flags.contains(.maskCommand) { modifiers.append(.leftGUI) }
+    return modifiers
+  }
+
+  private func normalizedModifiers(_ modifiers: [HIDModifier]) -> [HIDModifier] {
+    let order: [HIDModifier] = [
+      .leftControl,
+      .leftShift,
+      .leftAlt,
+      .leftGUI,
+      .rightControl,
+      .rightShift,
+      .rightAlt,
+      .rightGUI
+    ]
+    return modifiers.sorted {
+      (order.firstIndex(of: $0) ?? Int.max) < (order.firstIndex(of: $1) ?? Int.max)
+    }
+  }
+}
+
+private struct MacroEditSession: Identifiable {
+  let id: UUID
+  let macro: Macro
+
+  init(macro: Macro) {
+    id = macro.id
+    self.macro = macro
+  }
+}
+
+private struct MacroDeletePrompt: Identifiable {
+  let id: UUID
+  let name: String
+}
+
+private struct GroupDeletePrompt: Identifiable {
+  let id: String
+  let name: String
+
+  init(name: String) {
+    id = name
+    self.name = name
+  }
+}
+
+private struct EditableMacroStep: Identifiable {
+  let id = UUID()
+  var type: MacroStepType
+  var keyCodeText: String
+  var modifiersSelection: Set<HIDModifier>
+  var delayMsText: String
+  var pairedKeyUp: Bool
+
+  init(step: MacroStep, pairedKeyUp: Bool = false) {
+    type = step.type
+    keyCodeText = step.keyCode.map(String.init) ?? "4"
+    modifiersSelection = Set(step.modifiers ?? [])
+    delayMsText = String(step.delayMs ?? 0)
+    self.pairedKeyUp = pairedKeyUp
+  }
+
+  func toMacroStep() -> MacroStep {
+    switch type {
+    case .delay:
+      let parsedDelay = Int(delayMsText) ?? 0
+      let clampedDelay = max(0, parsedDelay)
+      return MacroStep(type: .delay, delayMs: clampedDelay)
+    case .keyDown, .keyUp:
+      let parsedUsage = Int(keyCodeText.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 4
+      let clampedUsage = max(0, min(255, parsedUsage))
+      let orderedModifiers = modifiersSelection.sorted {
+        (modifierOrder.firstIndex(of: $0) ?? Int.max) < (modifierOrder.firstIndex(of: $1) ?? Int.max)
+      }
+      return MacroStep(
+        type: type,
+        keyCode: clampedUsage,
+        modifiers: orderedModifiers.isEmpty ? nil : orderedModifiers
+      )
+    }
+  }
+
+  private var modifierOrder: [HIDModifier] {
+    [.leftControl, .leftShift, .leftAlt, .leftGUI, .rightControl, .rightShift, .rightAlt, .rightGUI]
+  }
+
+  func keySignatureMatches(_ other: EditableMacroStep) -> Bool {
+    keyCodeText.trimmingCharacters(in: .whitespacesAndNewlines)
+      == other.keyCodeText.trimmingCharacters(in: .whitespacesAndNewlines)
+      && modifiersSelection == other.modifiersSelection
+  }
+}
+
+struct MacroEditorSheet: View {
+  let macro: Macro
+  let availableGroups: [String]
+  let onSave: (Macro) -> Void
+  let onCancel: () -> Void
+
+  @State private var name: String
+  @State private var selectedGroup: String?
+  @State private var splitKeyEvents: Bool
+  @State private var steps: [EditableMacroStep]
+
+  init(
+    macro: Macro,
+    availableGroups: [String],
+    onSave: @escaping (Macro) -> Void,
+    onCancel: @escaping () -> Void
+  ) {
+    self.macro = macro
+    self.availableGroups = availableGroups
+    self.onSave = onSave
+    self.onCancel = onCancel
+    _name = State(initialValue: macro.name)
+    _selectedGroup = State(initialValue: macro.group)
+    _splitKeyEvents = State(initialValue: macro.splitKeyEvents)
+    _steps = State(
+      initialValue: macro.splitKeyEvents
+        ? macro.steps.map { EditableMacroStep(step: $0) }
+        : MacroEditorSheet.compressEditableSteps(macro.steps.map { EditableMacroStep(step: $0) })
+    )
+  }
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      Text("Edit Macro")
+        .font(.title2)
+        .bold()
+      Text("Macro Name")
+        .font(.subheadline)
+        .foregroundStyle(.secondary)
+      TextField("Macro name", text: $name)
+        .textFieldStyle(.roundedBorder)
+      Picker("Group", selection: $selectedGroup) {
+        Text("Ungrouped").tag(String?.none)
+        ForEach(availableGroups, id: \.self) { group in
+          Text(group).tag(Optional(group))
+        }
+      }
+      .pickerStyle(.menu)
+      Toggle("Split key down/up steps", isOn: $splitKeyEvents)
+        .toggleStyle(.switch)
+        .onChange(of: splitKeyEvents) { enabled in
+          steps = enabled ? expandEditableSteps(steps) : Self.compressEditableSteps(steps)
+        }
+
+      if steps.isEmpty {
+        Text("No steps in this macro.")
+          .foregroundStyle(.secondary)
+      } else {
+        ScrollView {
+          VStack(alignment: .leading, spacing: 8) {
+            ForEach(Array(steps.indices), id: \.self) { index in
+              macroStepRow(index: index)
+            }
+          }
+        }
+        .frame(minHeight: 220, maxHeight: 320)
+      }
+
+      HStack(spacing: 12) {
+        if splitKeyEvents {
+          Button("Add Key Down") {
+            steps.append(
+              EditableMacroStep(
+                step: MacroStep(type: .keyDown, keyCode: 4, modifiers: nil)
+              )
+            )
+          }
+          Button("Add Key Up") {
+            steps.append(
+              EditableMacroStep(
+                step: MacroStep(type: .keyUp, keyCode: 4, modifiers: nil)
+              )
+            )
+          }
+        } else {
+          Button("Add Key Tap") {
+            steps.append(
+              EditableMacroStep(
+                step: MacroStep(type: .keyDown, keyCode: 4, modifiers: nil),
+                pairedKeyUp: true
+              )
+            )
+          }
+        }
+        Button("Add Delay Step") {
+          steps.append(
+            EditableMacroStep(
+              step: MacroStep(type: .delay, delayMs: 100)
+            )
+          )
+        }
+        Spacer()
+        Button("Cancel") {
+          onCancel()
+        }
+        Button("Save") {
+          let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+          guard !trimmedName.isEmpty else {
+            return
+          }
+          let rebuiltSteps = rebuiltMacroSteps()
+          onSave(
+            Macro(
+              id: macro.id,
+              name: trimmedName,
+              group: selectedGroup,
+              splitKeyEvents: splitKeyEvents,
+              steps: rebuiltSteps
+            )
+          )
+        }
+        .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+      }
+    }
+    .padding(20)
+    .frame(minWidth: 760, minHeight: 460)
+  }
+
+  private func macroStepRow(index: Int) -> some View {
+    HStack(spacing: 10) {
+      Text("\(index + 1).")
+        .font(.system(.footnote, design: .monospaced))
+        .frame(width: 28, alignment: .trailing)
+      stepDetails(index: index)
+      Spacer()
+      Button("Up") {
+        moveStep(from: index, to: index - 1)
+      }
+      .disabled(index == 0)
+      Button("Down") {
+        moveStep(from: index, to: index + 1)
+      }
+      .disabled(index >= steps.count - 1)
+      Button("Delete", role: .destructive) {
+        steps.remove(at: index)
+      }
+    }
+    .padding(.vertical, 4)
+  }
+
+  @ViewBuilder
+  private func stepDetails(index: Int) -> some View {
+    let step = steps[index]
+    switch step.type {
+    case .delay:
+      Text("Delay")
+        .frame(width: 70, alignment: .leading)
+      TextField(
+        "ms",
+        text: Binding(
+          get: { steps[index].delayMsText },
+          set: { steps[index].delayMsText = $0 }
+        )
+      )
+      .textFieldStyle(.roundedBorder)
+      .frame(width: 120)
+      Text("ms")
+        .foregroundStyle(.secondary)
+    case .keyDown, .keyUp:
+      VStack(alignment: .leading, spacing: 6) {
+        HStack(spacing: 8) {
+          Text(keyStepLabel(step))
+            .frame(width: 90, alignment: .leading)
+          Text("Usage")
+            .foregroundStyle(.secondary)
+          TextField(
+            "HID",
+            text: Binding(
+              get: { steps[index].keyCodeText },
+              set: { steps[index].keyCodeText = $0 }
+            )
+          )
+          .textFieldStyle(.roundedBorder)
+          .frame(width: 80)
+          Text(readableKeyLabel(forUsage: Int(steps[index].keyCodeText) ?? 0))
+            .foregroundStyle(.secondary)
+            .font(.system(.footnote, design: .monospaced))
+        }
+        HStack(spacing: 6) {
+          Text("Modifiers")
+            .foregroundStyle(.secondary)
+          ForEach(HIDModifier.allCases, id: \.self) { modifier in
+            Toggle(shortModifierName(modifier), isOn: Binding(
+              get: { steps[index].modifiersSelection.contains(modifier) },
+              set: { isOn in
+                if isOn {
+                  steps[index].modifiersSelection.insert(modifier)
+                } else {
+                  steps[index].modifiersSelection.remove(modifier)
+                }
+              }
+            ))
+            .toggleStyle(.button)
+            .controlSize(.small)
+          }
+        }
+      }
+    }
+  }
+
+  private func keyStepLabel(_ step: EditableMacroStep) -> String {
+    if !splitKeyEvents, step.type == .keyDown, step.pairedKeyUp {
+      return "Key Tap"
+    }
+    return step.type == .keyDown ? "Key Down" : "Key Up"
+  }
+
+  private func rebuiltMacroSteps() -> [MacroStep] {
+    if splitKeyEvents {
+      return steps.map { $0.toMacroStep() }
+    }
+    var rebuilt: [MacroStep] = []
+    for step in steps {
+      switch step.type {
+      case .delay:
+        rebuilt.append(step.toMacroStep())
+      case .keyUp:
+        rebuilt.append(step.toMacroStep())
+      case .keyDown:
+        let down = step.toMacroStep()
+        rebuilt.append(down)
+        if step.pairedKeyUp {
+          rebuilt.append(
+            MacroStep(
+              type: .keyUp,
+              keyCode: down.keyCode,
+              modifiers: down.modifiers
+            )
+          )
+        }
+      }
+    }
+    return rebuilt
+  }
+
+  private func expandEditableSteps(_ source: [EditableMacroStep]) -> [EditableMacroStep] {
+    var expanded: [EditableMacroStep] = []
+    for step in source {
+      if step.type == .keyDown && step.pairedKeyUp {
+        var down = step
+        down.pairedKeyUp = false
+        expanded.append(down)
+        expanded.append(
+          EditableMacroStep(
+            step: MacroStep(
+              type: .keyUp,
+              keyCode: Int(step.keyCodeText.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 4,
+              modifiers: Array(step.modifiersSelection)
+            )
+          )
+        )
+      } else {
+        var copy = step
+        copy.pairedKeyUp = false
+        expanded.append(copy)
+      }
+    }
+    return expanded
+  }
+
+  private static func compressEditableSteps(_ source: [EditableMacroStep]) -> [EditableMacroStep] {
+    var compressed: [EditableMacroStep] = []
+    var index = 0
+    while index < source.count {
+      var current = source[index]
+      if current.type == .keyDown, index + 1 < source.count {
+        let next = source[index + 1]
+        if next.type == .keyUp, current.keySignatureMatches(next) {
+          current.pairedKeyUp = true
+          compressed.append(current)
+          index += 2
+          continue
+        }
+      }
+      current.pairedKeyUp = false
+      compressed.append(current)
+      index += 1
+    }
+    return compressed
+  }
+
+  private func moveStep(from source: Int, to destination: Int) {
+    guard source != destination, destination >= 0, destination < steps.count else {
+      return
+    }
+    let step = steps.remove(at: source)
+    steps.insert(step, at: destination)
+  }
+
+  private func shortModifierName(_ modifier: HIDModifier) -> String {
+    switch modifier {
+    case .leftControl: return "LCtrl"
+    case .leftShift: return "LShift"
+    case .leftAlt: return "LAlt"
+    case .leftGUI: return "LCmd"
+    case .rightControl: return "RCtrl"
+    case .rightShift: return "RShift"
+    case .rightAlt: return "RAlt"
+    case .rightGUI: return "RCmd"
+    }
+  }
+
+  private func readableKeyLabel(forUsage usage: Int) -> String {
+    switch usage {
+    case 0x04...0x1D:
+      let scalarValue = 65 + (usage - 0x04)
+      return String(Character(UnicodeScalar(scalarValue)!))
+    case 0x1E...0x26:
+      return String(usage - 0x1D)
+    case 0x27:
+      return "0"
+    case 0x28: return "Enter"
+    case 0x29: return "Esc"
+    case 0x2A: return "Backspace"
+    case 0x2B: return "Tab"
+    case 0x2C: return "Space"
+    case 0x2D: return "-"
+    case 0x2E: return "="
+    case 0x2F: return "["
+    case 0x30: return "]"
+    case 0x31: return "\\"
+    case 0x33: return ";"
+    case 0x34: return "'"
+    case 0x35: return "`"
+    case 0x36: return ","
+    case 0x37: return "."
+    case 0x38: return "/"
+    case 0x3A...0x45:
+      return "F\(usage - 0x39)"
+    case 0x4F: return "Right"
+    case 0x50: return "Left"
+    case 0x51: return "Down"
+    case 0x52: return "Up"
+    default:
+      return "?"
+    }
+  }
+}
+
 struct MacrosView: View {
+  @StateObject private var recorder = MacroRecorder()
   @State private var macros: [Macro] = []
+  @State private var groups: [String] = []
   @State private var status = "Not loaded"
+  @State private var showSaveSheet = false
+  @State private var newMacroName = ""
+  @State private var showCreateGroupSheet = false
+  @State private var newGroupName = ""
+  @State private var editSession: MacroEditSession? = nil
+  @State private var deletePrompt: MacroDeletePrompt? = nil
+  @State private var groupDeletePrompt: GroupDeletePrompt? = nil
+  @State private var expandedGroups: Set<String> = []
+  @State private var isUngroupedExpanded = false
 
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
@@ -1588,19 +2588,94 @@ struct MacrosView: View {
         Button("Reload Macros") {
           loadMacros()
         }
+        Button("New Group") {
+          newGroupName = ""
+          showCreateGroupSheet = true
+        }
+        if recorder.isRecording {
+          Button("Stop Recording") {
+            stopRecording()
+          }
+        } else {
+          Button("Start Recording") {
+            startRecording()
+          }
+        }
         Text(status)
+          .foregroundStyle(.secondary)
+      }
+      if recorder.isRecording {
+        Text("Recording... \(recorder.steps.count) steps captured")
           .foregroundStyle(.secondary)
       }
       if macros.isEmpty {
         Text("No macros defined yet.")
           .foregroundStyle(.secondary)
       } else {
-        List(macros, id: \.id) { macro in
-          VStack(alignment: .leading, spacing: 4) {
-            Text(macro.name)
-              .font(.headline)
-            Text("\(macro.steps.count) steps")
-              .foregroundStyle(.secondary)
+        List {
+          ForEach(groups, id: \.self) { group in
+            let grouped = groupedMacros(group)
+            Section {
+              if expandedGroups.contains(group) {
+                if grouped.isEmpty {
+                  Text("No macros in this group.")
+                    .foregroundStyle(.secondary)
+                } else {
+                  ForEach(grouped, id: \.id) { macro in
+                    macroRow(macro)
+                  }
+                }
+              }
+            } header: {
+              HStack {
+                Button {
+                  toggleGroup(group)
+                } label: {
+                  HStack(spacing: 6) {
+                    Image(systemName: expandedGroups.contains(group) ? "chevron.down" : "chevron.right")
+                    Text(group)
+                  }
+                }
+                .buttonStyle(.plain)
+                Spacer()
+                Text("\(grouped.count)")
+                  .foregroundStyle(.secondary)
+                Button(role: .destructive) {
+                  groupDeletePrompt = GroupDeletePrompt(name: group)
+                } label: {
+                  Image(systemName: "trash")
+                }
+                .buttonStyle(.borderless)
+              }
+            }
+          }
+
+          Section {
+            if isUngroupedExpanded {
+              if ungroupedMacros.isEmpty {
+                Text("No ungrouped macros.")
+                  .foregroundStyle(.secondary)
+              } else {
+                ForEach(ungroupedMacros, id: \.id) { macro in
+                  macroRow(macro)
+                }
+              }
+            }
+          } header: {
+            HStack {
+              Button {
+                isUngroupedExpanded.toggle()
+              } label: {
+                HStack(spacing: 6) {
+                  Image(systemName: isUngroupedExpanded ? "chevron.down" : "chevron.right")
+                  Text("Ungrouped")
+                }
+              }
+              .buttonStyle(.plain)
+              Spacer()
+              Text("\(ungroupedMacros.count)")
+                .foregroundStyle(.secondary)
+            }
           }
         }
       }
@@ -1608,18 +2683,318 @@ struct MacrosView: View {
     }
     .padding(24)
     .onAppear(perform: loadMacros)
+    .sheet(isPresented: $showSaveSheet) {
+      VStack(alignment: .leading, spacing: 12) {
+        Text("Save Macro")
+          .font(.headline)
+        TextField("Macro name", text: $newMacroName)
+          .textFieldStyle(.roundedBorder)
+        HStack(spacing: 12) {
+          Button("Discard") {
+            showSaveSheet = false
+            recorder.stop()
+            recorder.clear()
+          }
+          Spacer()
+          Button("Save") {
+            saveRecordedMacro()
+          }
+          .disabled(newMacroName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        }
+      }
+      .padding(20)
+      .frame(width: 420)
+    }
+    .sheet(isPresented: $showCreateGroupSheet) {
+      VStack(alignment: .leading, spacing: 12) {
+        Text("Create Group")
+          .font(.headline)
+        TextField("Group name", text: $newGroupName)
+          .textFieldStyle(.roundedBorder)
+        HStack(spacing: 12) {
+          Button("Cancel") {
+            showCreateGroupSheet = false
+          }
+          Spacer()
+          Button("Create") {
+            createGroup()
+          }
+          .disabled(newGroupName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+        }
+      }
+      .padding(20)
+      .frame(width: 420)
+    }
+    .sheet(item: $editSession) { session in
+      MacroEditorSheet(
+        macro: session.macro,
+        availableGroups: groups,
+        onSave: { updated in
+          saveEditedMacro(updated)
+          editSession = nil
+        },
+        onCancel: {
+          editSession = nil
+        }
+      )
+    }
+    .alert(item: $deletePrompt) { prompt in
+      Alert(
+        title: Text("Delete Macro"),
+        message: Text("Delete '\(prompt.name)'? This cannot be undone."),
+        primaryButton: .destructive(Text("Delete")) {
+          deleteMacro(id: prompt.id, name: prompt.name)
+        },
+        secondaryButton: .cancel()
+      )
+    }
+    .alert(item: $groupDeletePrompt) { prompt in
+      Alert(
+        title: Text("Remove Group"),
+        message: Text("Remove group '\(prompt.name)'? Macros in this group will become ungrouped."),
+        primaryButton: .destructive(Text("Remove")) {
+          deleteGroup(name: prompt.name)
+        },
+        secondaryButton: .cancel()
+      )
+    }
   }
 
   private func loadMacros() {
     let loader = MacroLibraryLoader()
-    let url = repoRoot().appendingPathComponent("configs/macros.json")
+    let url = ensureMacrosFile(at: macrosURL())
     do {
       let library = try loader.load(from: url)
-      macros = library.macros
-      status = "Loaded \(library.macros.count) macros"
+      let normalized = normalizedState(macros: library.macros, groups: library.groups)
+      macros = normalized.macros
+      groups = normalized.groups
+      expandedGroups = expandedGroups.intersection(Set(normalized.groups))
+      status = "Loaded \(normalized.macros.count) macros in \(normalized.groups.count) groups"
     } catch {
       status = "Failed: \(error.localizedDescription)"
     }
+  }
+
+  private func startRecording() {
+    if recorder.start() {
+      status = "Recording started."
+    } else {
+      status = "Failed to start recording. Enable Accessibility access."
+    }
+  }
+
+  private func stopRecording() {
+    recorder.stop()
+    if recorder.steps.isEmpty {
+      status = "No input recorded."
+    } else {
+      newMacroName = "Recorded Macro \(DateFormatter.localizedString(from: Date(), dateStyle: .short, timeStyle: .short))"
+      showSaveSheet = true
+    }
+  }
+
+  private func saveRecordedMacro() {
+    let name = newMacroName.trimmingCharacters(in: .whitespacesAndNewlines)
+    guard !name.isEmpty else { return }
+    let macro = Macro(id: UUID(), name: name, group: nil, steps: recorder.steps)
+    persistLibrary(
+      macros: macros + [macro],
+      groups: groups,
+      successMessage: "Saved macro: \(name)"
+    )
+    showSaveSheet = false
+    recorder.clear()
+  }
+
+  private func saveEditedMacro(_ macro: Macro) {
+    var updatedMacros = macros
+    if let index = updatedMacros.firstIndex(where: { $0.id == macro.id }) {
+      updatedMacros[index] = macro
+    } else {
+      updatedMacros.append(macro)
+    }
+    persistLibrary(
+      macros: updatedMacros,
+      groups: groups,
+      successMessage: "Updated macro: \(macro.name)"
+    )
+  }
+
+  private func deleteMacro(id: UUID, name: String) {
+    let updatedMacros = macros.filter { $0.id != id }
+    persistLibrary(
+      macros: updatedMacros,
+      groups: groups,
+      successMessage: "Deleted macro: \(name)"
+    )
+  }
+
+  private func createGroup() {
+    guard let group = normalizedGroupName(newGroupName) else {
+      return
+    }
+    if groups.contains(where: { $0.localizedCaseInsensitiveCompare(group) == .orderedSame }) {
+      status = "Group already exists: \(group)"
+      showCreateGroupSheet = false
+      return
+    }
+    persistLibrary(
+      macros: macros,
+      groups: groups + [group],
+      successMessage: "Created group: \(group)"
+    )
+    showCreateGroupSheet = false
+  }
+
+  private func deleteGroup(name: String) {
+    let updatedMacros = macros.map { macro in
+      if macro.group?.localizedCaseInsensitiveCompare(name) == .orderedSame {
+        return Macro(
+          id: macro.id,
+          name: macro.name,
+          group: nil,
+          splitKeyEvents: macro.splitKeyEvents,
+          steps: macro.steps
+        )
+      }
+      return macro
+    }
+    let updatedGroups = groups.filter { $0.localizedCaseInsensitiveCompare(name) != .orderedSame }
+    expandedGroups.remove(name)
+    persistLibrary(
+      macros: updatedMacros,
+      groups: updatedGroups,
+      successMessage: "Removed group: \(name)"
+    )
+  }
+
+  private func persistLibrary(macros: [Macro], groups: [String], successMessage: String) {
+    let url = ensureMacrosFile(at: macrosURL())
+    let normalized = normalizedState(macros: macros, groups: groups)
+    do {
+      let library = MacroLibrary(macros: normalized.macros, groups: normalized.groups)
+      try writeMacros(library, to: url)
+      self.macros = normalized.macros
+      self.groups = normalized.groups
+      status = successMessage
+    } catch {
+      status = "Failed to write macros: \(error.localizedDescription)"
+    }
+  }
+
+  private func normalizedState(macros: [Macro], groups: [String]) -> (macros: [Macro], groups: [String]) {
+    let normalizedMacros = macros.map { macro in
+      Macro(
+        id: macro.id,
+        name: macro.name.trimmingCharacters(in: .whitespacesAndNewlines),
+        group: normalizedGroupName(macro.group),
+        splitKeyEvents: macro.splitKeyEvents,
+        steps: macro.steps
+      )
+    }
+    let normalizedGroups = normalizeGroups(explicit: groups, macros: normalizedMacros)
+    return (normalizedMacros, normalizedGroups)
+  }
+
+  private func normalizeGroups(explicit: [String], macros: [Macro]) -> [String] {
+    var set = Set<String>()
+    for group in explicit {
+      if let normalized = normalizedGroupName(group) {
+        set.insert(normalized)
+      }
+    }
+    for macro in macros {
+      if let normalized = normalizedGroupName(macro.group) {
+        set.insert(normalized)
+      }
+    }
+    return set.sorted { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }
+  }
+
+  private func normalizedGroupName(_ value: String?) -> String? {
+    guard let value else {
+      return nil
+    }
+    let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+    return trimmed.isEmpty ? nil : trimmed
+  }
+
+  private func groupedMacros(_ group: String) -> [Macro] {
+    macros
+      .filter { $0.group?.localizedCaseInsensitiveCompare(group) == .orderedSame }
+      .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+  }
+
+  private func toggleGroup(_ group: String) {
+    if expandedGroups.contains(group) {
+      expandedGroups.remove(group)
+    } else {
+      expandedGroups.insert(group)
+    }
+  }
+
+  private var ungroupedMacros: [Macro] {
+    macros
+      .filter { normalizedGroupName($0.group) == nil }
+      .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+  }
+
+  @ViewBuilder
+  private func macroRow(_ macro: Macro) -> some View {
+    HStack(spacing: 12) {
+      VStack(alignment: .leading, spacing: 4) {
+        Text(macro.name)
+          .font(.headline)
+        Text("\(macro.steps.count) steps")
+          .foregroundStyle(.secondary)
+      }
+      Spacer()
+      Button("Edit") {
+        editSession = MacroEditSession(macro: macro)
+      }
+      .buttonStyle(.borderless)
+      Button("Delete", role: .destructive) {
+        deletePrompt = MacroDeletePrompt(id: macro.id, name: macro.name)
+      }
+      .buttonStyle(.borderless)
+    }
+  }
+
+  private func macrosURL() -> URL {
+    let fm = FileManager.default
+    if let appSupport = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first {
+      return appSupport.appendingPathComponent("Gehenna", isDirectory: true)
+        .appendingPathComponent("macros.json")
+    }
+    return repoRoot().appendingPathComponent("configs/macros.json")
+  }
+
+  private func ensureMacrosFile(at url: URL) -> URL {
+    let fm = FileManager.default
+    if fm.fileExists(atPath: url.path) {
+      return url
+    }
+    let fallback = repoRoot().appendingPathComponent("configs/macros.json")
+    if fm.fileExists(atPath: fallback.path) {
+      if url.path != fallback.path {
+        try? fm.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        if !fm.fileExists(atPath: url.path) {
+          try? fm.copyItem(at: fallback, to: url)
+        }
+        if fm.fileExists(atPath: url.path) {
+          return url
+        }
+      }
+      return fallback
+    }
+    return url
+  }
+
+  private func writeMacros(_ library: MacroLibrary, to url: URL) throws {
+    let encoder = JSONEncoder()
+    encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+    let data = try encoder.encode(library)
+    try data.write(to: url, options: .atomic)
   }
 }
 

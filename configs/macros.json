@@ -18,7 +18,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Photoshop"
     },
     {
       "id": "0fc4aa3a-6b68-4443-b6b4-849808fc2291",
@@ -40,7 +41,8 @@
             "L-Shift"
           ]
         }
-      ]
+      ],
+      "group": "Photoshop"
     },
     {
       "id": "db4a11f5-9d88-42c9-9327-2067fa10065c",
@@ -60,7 +62,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Photoshop"
     },
     {
       "id": "d669e9e3-4717-4a7d-83df-f7962a4de26e",
@@ -80,7 +83,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Photoshop"
     },
     {
       "id": "96cf3cca-b13c-4dd5-8565-206eeabf7b72",
@@ -100,7 +104,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Browser"
     },
     {
       "id": "e9c72e2f-e48d-4fcc-975d-c4dbd5af805f",
@@ -120,7 +125,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Browser"
     },
     {
       "id": "2876d555-5602-483e-9f21-cabd7b870ad7",
@@ -142,7 +148,8 @@
             "L-Shift"
           ]
         }
-      ]
+      ],
+      "group": "Browser"
     },
     {
       "id": "5a9c502c-e436-4c9b-9795-5de7edae139e",
@@ -162,7 +169,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Browser"
     },
     {
       "id": "ae2f4f04-3330-475b-a8ce-33c02f15d360",
@@ -184,7 +192,8 @@
             "L-Shift"
           ]
         }
-      ]
+      ],
+      "group": "Browser"
     },
     {
       "id": "435323d6-3df3-4cac-916a-331a99685e31",
@@ -204,7 +213,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Browser"
     },
     {
       "id": "28d56834-5096-4ac4-adca-abd5e4d633c9",
@@ -224,7 +234,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Browser"
     },
     {
       "id": "3621cf16-0f9d-431a-a38b-f8724e6c4994",
@@ -244,7 +255,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Browser"
     },
     {
       "id": "2a0c885b-e08f-41e4-9728-cc89b35f14a5",
@@ -264,7 +276,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Browser"
     },
     {
       "id": "67b4270a-6de4-4264-89b1-6bb41eb3d97f",
@@ -284,7 +297,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Browser"
     },
     {
       "id": "7372b172-cc9d-42b9-8e6b-6a04eee6bd41",
@@ -304,7 +318,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Browser"
     },
     {
       "id": "cba2e965-3206-4fbd-9d5f-29fc3d6d5fde",
@@ -324,7 +339,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Browser"
     },
     {
       "id": "2c8f78ba-b6a8-4941-9d3b-1a99ce857ad4",
@@ -346,7 +362,8 @@
             "L-Shift"
           ]
         }
-      ]
+      ],
+      "group": "Browser"
     },
     {
       "id": "2a45645c-aa38-41ad-a306-63e2d99caa17",
@@ -368,7 +385,8 @@
             "L-Shift"
           ]
         }
-      ]
+      ],
+      "group": "Browser"
     },
     {
       "id": "52c4b040-0949-42b5-bb53-c8bc1a38cd98",
@@ -390,7 +408,8 @@
             "L-Shift"
           ]
         }
-      ]
+      ],
+      "group": "Browser"
     },
     {
       "id": "b52a29d3-fd86-42be-becb-e147f3a08a72",
@@ -410,7 +429,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Mail"
     },
     {
       "id": "83a9b97a-6f29-475d-bfb5-c6c9196f834f",
@@ -430,7 +450,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Mail"
     },
     {
       "id": "71ac7d20-e1d6-402a-8a8c-6fb4ac8f8c75",
@@ -452,7 +473,8 @@
             "L-Shift"
           ]
         }
-      ]
+      ],
+      "group": "Mail"
     },
     {
       "id": "f7a21e97-127e-4295-b0c4-81bd48ccb636",
@@ -474,7 +496,8 @@
             "L-Shift"
           ]
         }
-      ]
+      ],
+      "group": "Mail"
     },
     {
       "id": "2f01580b-0afc-4537-9217-3dd290004d24",
@@ -496,7 +519,8 @@
             "L-Shift"
           ]
         }
-      ]
+      ],
+      "group": "Mail"
     },
     {
       "id": "1b467194-a7a6-4bef-8f00-77d05e9037c3",
@@ -516,7 +540,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Mail"
     },
     {
       "id": "89d938d4-3153-4d43-aec8-da996eef0c8d",
@@ -538,7 +563,8 @@
             "L-Shift"
           ]
         }
-      ]
+      ],
+      "group": "Mail"
     },
     {
       "id": "bf311316-8ad4-461c-9c09-0019abeddef9",
@@ -560,7 +586,8 @@
             "L-Shift"
           ]
         }
-      ]
+      ],
+      "group": "Mail"
     },
     {
       "id": "157a759a-6200-4217-baba-694e883ff1d1",
@@ -582,7 +609,8 @@
             "L-Shift"
           ]
         }
-      ]
+      ],
+      "group": "Mail"
     },
     {
       "id": "a9e37101-cb11-43f1-83ad-46a227b66eab",
@@ -602,7 +630,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Terminal"
     },
     {
       "id": "9314f7f2-fb3b-4d7b-bcb3-6de850f0620d",
@@ -622,7 +651,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Terminal"
     },
     {
       "id": "f6f8143a-b642-4bfb-bce3-b32864ebddd6",
@@ -642,7 +672,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Terminal"
     },
     {
       "id": "cd7ad269-df54-4d4c-b5af-6d136880ffc1",
@@ -662,7 +693,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Terminal"
     },
     {
       "id": "80fb5096-5a94-49f1-9897-5ef93a4bdb04",
@@ -684,7 +716,8 @@
             "L-Shift"
           ]
         }
-      ]
+      ],
+      "group": "Terminal"
     },
     {
       "id": "8e9c2cf8-ecc7-49f7-95bd-250f46425280",
@@ -704,7 +737,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Terminal"
     },
     {
       "id": "48562b35-d72b-40b5-868e-4729de24f559",
@@ -724,7 +758,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Terminal"
     },
     {
       "id": "0507b6c6-b5c0-4fb3-8d59-acbe53284bfa",
@@ -746,7 +781,8 @@
             "L-Shift"
           ]
         }
-      ]
+      ],
+      "group": "Terminal"
     },
     {
       "id": "40f04fb8-534d-43fe-87dc-18ec831733c5",
@@ -768,7 +804,8 @@
             "L-Shift"
           ]
         }
-      ]
+      ],
+      "group": "Terminal"
     },
     {
       "id": "5559bf56-ef63-40cd-88fe-d103153b7d53",
@@ -788,7 +825,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Generic"
     },
     {
       "id": "20030ae1-448b-4ac9-8df9-f12a35496613",
@@ -808,7 +846,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Generic"
     },
     {
       "id": "e24d5b6a-0b0e-49d0-bdf8-151e08d70555",
@@ -828,7 +867,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Generic"
     },
     {
       "id": "b606aaf1-8c44-4c3a-ae99-a45ead4a8cff",
@@ -848,7 +888,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Generic"
     },
     {
       "id": "6bfecf45-b631-4cde-b274-914a8f4e18b6",
@@ -868,7 +909,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Generic"
     },
     {
       "id": "4f790199-0eb2-4328-8e31-7245d546051b",
@@ -888,7 +930,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Generic"
     },
     {
       "id": "657a59bf-d883-4547-87e6-c82e1590c6c1",
@@ -908,7 +951,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Generic"
     },
     {
       "id": "d0ec6494-d450-4576-8699-82974348f250",
@@ -928,7 +972,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Generic"
     },
     {
       "id": "ce6788ed-3e35-4c74-b597-15d4ac7d1164",
@@ -948,7 +993,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Generic"
     },
     {
       "id": "cf6b7cdb-7f84-499a-996b-53c5b38c2f59",
@@ -970,7 +1016,8 @@
             "L-Shift"
           ]
         }
-      ]
+      ],
+      "group": "Generic"
     },
     {
       "id": "da3964a8-215c-4bb2-b7bc-63f2f6cba67f",
@@ -990,7 +1037,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Generic"
     },
     {
       "id": "0a1c1138-93be-45ec-9abd-26bf93d7d08c",
@@ -1010,7 +1058,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Generic"
     },
     {
       "id": "5db1c25e-e7d5-48cf-94dd-db3e823508b0",
@@ -1032,7 +1081,8 @@
             "L-Shift"
           ]
         }
-      ]
+      ],
+      "group": "Finder"
     },
     {
       "id": "1d061802-ee72-4c38-bd53-4a7a107ff58d",
@@ -1054,7 +1104,8 @@
             "L-Shift"
           ]
         }
-      ]
+      ],
+      "group": "Finder"
     },
     {
       "id": "e3f1f8d5-f2d2-4196-9546-85cfc6402a61",
@@ -1074,7 +1125,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Finder"
     },
     {
       "id": "d8299aa0-753b-4f44-ab00-73fe7143eec8",
@@ -1094,7 +1146,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Finder"
     },
     {
       "id": "cd6079ed-1f07-4abe-b65e-e5c653eac660",
@@ -1114,7 +1167,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Finder"
     },
     {
       "id": "05b1ecf1-5eca-4eae-9604-4874851627c4",
@@ -1134,7 +1188,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Notes"
     },
     {
       "id": "0c0886cb-780c-4a90-ac22-8493aaa164e0",
@@ -1154,7 +1209,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Notes"
     },
     {
       "id": "45f3e66c-cf38-4b5c-8756-e52802919175",
@@ -1174,7 +1230,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Notes"
     },
     {
       "id": "76c56a46-d8a9-4531-bfc6-79f920699944",
@@ -1194,7 +1251,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Notes"
     },
     {
       "id": "150228e2-f9a9-4e01-b90f-76eb27173a2c",
@@ -1214,7 +1272,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Calendar"
     },
     {
       "id": "9f3df6ae-2ff9-4455-a271-aab7c353c63d",
@@ -1234,7 +1293,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Calendar"
     },
     {
       "id": "923ce768-0c9e-427d-91a1-522c177567b0",
@@ -1254,7 +1314,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Calendar"
     },
     {
       "id": "b81bdc47-f4ab-4e5e-a2dc-fce81035a679",
@@ -1274,7 +1335,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Calendar"
     },
     {
       "id": "453e505f-32d6-4437-82e2-0a9408b933b8",
@@ -1294,7 +1356,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Calendar"
     },
     {
       "id": "b81372dd-2bb5-4957-9438-13c06f952248",
@@ -1314,7 +1377,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Calendar"
     },
     {
       "id": "6253bb9d-682a-42e8-a59b-1de294881a9a",
@@ -1334,7 +1398,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Messages"
     },
     {
       "id": "d7654990-3773-45c7-a662-ff7dbaab69cd",
@@ -1354,7 +1419,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Messages"
     },
     {
       "id": "e98b50e9-a11d-4e67-8149-30299d53b9fa",
@@ -1374,7 +1440,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Messages"
     },
     {
       "id": "be834903-94c0-4811-8d87-6f1f61294118",
@@ -1394,7 +1461,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Messages"
     },
     {
       "id": "f8c0cea9-ffa5-44a0-b38e-b936839d9392",
@@ -1410,7 +1478,8 @@
           "keyCode": 44,
           "modifiers": []
         }
-      ]
+      ],
+      "group": "Music"
     },
     {
       "id": "a3d26a31-ab06-4ce1-af4b-c304928ce487",
@@ -1430,7 +1499,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Music"
     },
     {
       "id": "76a132a3-fdd0-44f6-8941-f1b5cc6ea10e",
@@ -1450,7 +1520,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Music"
     },
     {
       "id": "dc8ec333-ebb5-4042-9abd-4c74812d745c",
@@ -1470,7 +1541,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Music"
     },
     {
       "id": "1ee76952-3a98-4979-8430-a768782b9692",
@@ -1490,7 +1562,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Preview"
     },
     {
       "id": "da936de4-e947-4a56-9389-70eb8c1ba2f4",
@@ -1510,7 +1583,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Preview"
     },
     {
       "id": "a8ba884e-0417-40d4-8410-9507e8cbb29d",
@@ -1530,7 +1604,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Preview"
     },
     {
       "id": "dcc46b8c-3019-4cc5-a37c-ad78491692b3",
@@ -1550,7 +1625,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Preview"
     },
     {
       "id": "301865d8-b647-4a67-b68d-f0259b462394",
@@ -1570,7 +1646,8 @@
             "L-GUI"
           ]
         }
-      ]
+      ],
+      "group": "Preview"
     },
     {
       "id": "a8e07d87-e8ca-47df-9865-85c30d0762a6",
@@ -1592,7 +1669,21 @@
             "L-Shift"
           ]
         }
-      ]
+      ],
+      "group": "Preview"
     }
+  ],
+  "groups": [
+    "Browser",
+    "Calendar",
+    "Finder",
+    "Generic",
+    "Mail",
+    "Messages",
+    "Music",
+    "Notes",
+    "Photoshop",
+    "Preview",
+    "Terminal"
   ]
 }

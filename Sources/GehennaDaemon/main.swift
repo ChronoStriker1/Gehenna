@@ -17,6 +17,13 @@ struct DaemonConfig {
   let logTapAll: Bool
   let logInputEvents: Bool
   let seizeFallback: Bool
+  let enableLighting: Bool
+  let lightingBrightness: UInt8?
+  let lightingStaticColor: TartarusProLightingColor?
+  let lightingEffect: TartarusProLightingEffect?
+  let lightingEffectColor1: TartarusProLightingColor?
+  let lightingEffectColor2: TartarusProLightingColor?
+  let lightingEffectSpeed: UInt8?
 }
 
 struct InputKey: Hashable {
@@ -188,6 +195,13 @@ func parseArgs() -> DaemonConfig {
   var logTapAll = false
   var logInputEvents = false
   var seizeFallback = false
+  var enableLighting = true
+  var lightingBrightness: UInt8?
+  var lightingStaticColor: TartarusProLightingColor?
+  var lightingEffect: TartarusProLightingEffect?
+  var lightingEffectColor1: TartarusProLightingColor?
+  var lightingEffectColor2: TartarusProLightingColor?
+  var lightingEffectSpeed: UInt8?
   var index = 0
   while index < args.count {
     let arg = args[index]
@@ -229,6 +243,38 @@ func parseArgs() -> DaemonConfig {
       logTapAll = true
     case "--log-input":
       logInputEvents = true
+    case "--no-lighting":
+      enableLighting = false
+    case "--lighting-brightness":
+      index += 1
+      if index < args.count, let value = Int(args[index]), (0...255).contains(value) {
+        lightingBrightness = UInt8(value)
+      }
+    case "--lighting-static":
+      index += 1
+      if index < args.count {
+        lightingStaticColor = TartarusProLightingColor.fromHexString(args[index])
+      }
+    case "--lighting-effect":
+      index += 1
+      if index < args.count {
+        lightingEffect = TartarusProLightingEffect.fromString(args[index])
+      }
+    case "--lighting-effect-color1":
+      index += 1
+      if index < args.count {
+        lightingEffectColor1 = TartarusProLightingColor.fromHexString(args[index])
+      }
+    case "--lighting-effect-color2":
+      index += 1
+      if index < args.count {
+        lightingEffectColor2 = TartarusProLightingColor.fromHexString(args[index])
+      }
+    case "--lighting-effect-speed":
+      index += 1
+      if index < args.count, let value = Int(args[index]), (0...255).contains(value) {
+        lightingEffectSpeed = UInt8(value)
+      }
     default:
       break
     }
@@ -247,7 +293,14 @@ func parseArgs() -> DaemonConfig {
     suppressKeyboardType: suppressKeyboardType,
     logTapAll: logTapAll,
     logInputEvents: logInputEvents,
-    seizeFallback: seizeFallback
+    seizeFallback: seizeFallback,
+    enableLighting: enableLighting,
+    lightingBrightness: lightingBrightness,
+    lightingStaticColor: lightingStaticColor,
+    lightingEffect: lightingEffect,
+    lightingEffectColor1: lightingEffectColor1,
+    lightingEffectColor2: lightingEffectColor2,
+    lightingEffectSpeed: lightingEffectSpeed
   )
 }
 
@@ -426,7 +479,7 @@ func startStatusServer(publisher: StatusPublisher) -> DispatchSourceRead? {
     _ = chmod(path, S_IRUSR | S_IWUSR)
   }
 
-  let source = DispatchSource.makeReadSource(fileDescriptor: fd, queue: DispatchQueue.global(qos: .utility))
+  let source = DispatchSource.makeReadSource(fileDescriptor: fd, queue: .main)
   source.setEventHandler {
     while true {
       var addr = sockaddr()
@@ -464,6 +517,24 @@ final class ActiveAppState {
 
 struct ActiveAppMessage: Codable {
   let bundleId: String
+}
+
+struct DaemonControlRequest: Codable {
+  let command: String
+  let staticColorHex: String?
+  let brightness: Int?
+  let layer: Int?
+  let effect: String?
+  let effectColorHex1: String?
+  let effectColorHex2: String?
+  let effectSpeed: Int?
+  let readback: Bool?
+}
+
+struct DaemonControlResponse: Codable {
+  let ok: Bool
+  let message: String
+  let readbackHex: String?
 }
 
 func activeAppSocketPath() -> String {
@@ -549,6 +620,119 @@ func startActiveAppServer(
         state.set(message.bundleId)
         onUpdate(message.bundleId)
       }
+    }
+  }
+  source.setCancelHandler {
+    close(fd)
+    _ = unlink(path)
+  }
+  source.resume()
+  return source
+}
+
+func controlSocketPath() -> String {
+  if let sudoUser = ProcessInfo.processInfo.environment["SUDO_USER"],
+     let pw = getpwnam(sudoUser) {
+    let uid = pw.pointee.pw_uid
+    return "/var/tmp/gehenna-control-\(uid).sock"
+  }
+  return "/var/tmp/gehenna-control-\(getuid()).sock"
+}
+
+func startControlServer(
+  handler: @escaping (DaemonControlRequest) -> DaemonControlResponse
+) -> DispatchSourceRead? {
+  let path = controlSocketPath()
+  _ = unlink(path)
+  let fd = socket(AF_UNIX, SOCK_STREAM, 0)
+  if fd < 0 {
+    return nil
+  }
+
+  var addr = sockaddr_un()
+  addr.sun_family = sa_family_t(AF_UNIX)
+  let pathBytes = Array(path.utf8CString)
+  let maxLen = MemoryLayout.size(ofValue: addr.sun_path)
+  let copyLen = min(pathBytes.count, maxLen)
+  _ = withUnsafeMutablePointer(to: &addr.sun_path) { ptr in
+    ptr.withMemoryRebound(to: CChar.self, capacity: copyLen) { buf in
+      pathBytes.withUnsafeBytes { bytes in
+        memcpy(buf, bytes.baseAddress, copyLen)
+      }
+    }
+  }
+
+  let bindResult = withUnsafePointer(to: &addr) { ptr in
+    ptr.withMemoryRebound(to: sockaddr.self, capacity: 1) { saPtr in
+      Darwin.bind(fd, saPtr, socklen_t(MemoryLayout<sockaddr_un>.size))
+    }
+  }
+  if bindResult != 0 {
+    close(fd)
+    return nil
+  }
+
+  _ = listen(fd, 8)
+  _ = fcntl(fd, F_SETFL, O_NONBLOCK)
+
+  if let sudoUser = ProcessInfo.processInfo.environment["SUDO_USER"],
+     let pw = getpwnam(sudoUser) {
+    let uid = pw.pointee.pw_uid
+    let gid = pw.pointee.pw_gid
+    _ = chown(path, uid, gid)
+    _ = chmod(path, S_IRUSR | S_IWUSR)
+  } else {
+    _ = chmod(path, S_IRUSR | S_IWUSR)
+  }
+
+  let source = DispatchSource.makeReadSource(fileDescriptor: fd, queue: DispatchQueue.global(qos: .utility))
+  source.setEventHandler {
+    while true {
+      var addr = sockaddr()
+      var len: socklen_t = socklen_t(MemoryLayout<sockaddr>.size)
+      let client = accept(fd, &addr, &len)
+      if client < 0 {
+        if errno == EWOULDBLOCK || errno == EAGAIN {
+          break
+        }
+        break
+      }
+
+      // Accepted sockets inherit nonblocking behavior from the listener on some systems.
+      // Switch client to blocking so we can reliably read the full JSON request.
+      _ = fcntl(client, F_SETFL, 0)
+
+      var data = Data()
+      var buffer = [UInt8](repeating: 0, count: 4096)
+      while true {
+        let count = read(client, &buffer, buffer.count)
+        if count > 0 {
+          data.append(buffer, count: count)
+        } else if count < 0 && errno == EINTR {
+          continue
+        } else {
+          break
+        }
+      }
+
+      let response: DaemonControlResponse
+      if let request = try? JSONDecoder().decode(DaemonControlRequest.self, from: data) {
+        response = handler(request)
+      } else {
+        response = DaemonControlResponse(
+          ok: false,
+          message: "Invalid control payload.",
+          readbackHex: nil
+        )
+      }
+
+      if let payload = try? JSONEncoder().encode(response) {
+        _ = payload.withUnsafeBytes { ptr in
+          write(client, ptr.baseAddress, payload.count)
+        }
+      }
+
+      close(client)
     }
   }
   source.setCancelHandler {
@@ -864,6 +1048,7 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
   let deviceByInterface = classifyInterfaces(devices: devices)
   let usedInterfaces = Set(mapping.inputs.values.map { $0.hid.interface })
   var listeners: [AnyObject] = []
+  var openedLightingDeviceKeys: Set<String> = []
   var previousKeys: [Int: Set<InputKey>] = [:]
   var previousModifiers: [Int: Set<HIDModifier>] = [:]
   // currentLayer/layerHoldActive initialized above for status reporting.
@@ -888,6 +1073,8 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
   var keymapPopupVisible = false
   var dpadPressed: Set<String> = []
   var lastDpadEffective: String? = nil
+  var lightingListeners: [HIDInputListener] = []
+  var activeLightingListenerIndex = 0
 
   if config.enableOutput && profiles == nil {
     print("Output enabled but no profiles loaded. Output will remain disabled.")
@@ -942,6 +1129,178 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
     publishStatus(lastEvent: "\(event.inputId) \(event.state)\(suffix)")
   }
 
+  @discardableResult
+  func writeLightingReport(_ request: [UInt8], eventName: String) -> [UInt8]? {
+    guard config.enableLighting else {
+      return nil
+    }
+    guard !lightingListeners.isEmpty else {
+      return nil
+    }
+
+    var lastError: Error?
+    for offset in 0..<lightingListeners.count {
+      let index = (activeLightingListenerIndex + offset) % lightingListeners.count
+      let listener = lightingListeners[index]
+      do {
+        try listener.setReport(type: .feature, reportId: 0, bytes: request)
+        let response = try listener.getReport(
+          type: .feature,
+          reportId: 0,
+          length: TartarusProLightingProtocol.reportLength
+        )
+        activeLightingListenerIndex = index
+        if !TartarusProLightingProtocol.isSuccessfulResponse(response), config.logInputEvents {
+          print("[lighting] \(eventName) non-success status=\(response.first ?? 0)")
+        }
+        return response
+      } catch {
+        lastError = error
+      }
+    }
+
+    if let lastError {
+      print("Lighting transport error: \(lastError.localizedDescription)")
+    }
+    return nil
+  }
+
+  func applyLayerLighting(_ layer: Int) {
+    let request = TartarusProLightingProtocol.profileIndicatorReport(layer: layer)
+    writeLightingReport(request, eventName: "layer=\(layer)")
+  }
+
+  func lightingEffectPayload(
+    effect: TartarusProLightingEffect,
+    color1: TartarusProLightingColor?,
+    color2: TartarusProLightingColor?,
+    speed: Int?
+  ) -> (packet: [UInt8], color1Hex: String, color2Hex: String, speed: UInt8) {
+    let resolvedColor1 = color1 ?? TartarusProLightingColor(r: 0x00, g: 0xFF, b: 0x00)
+    let resolvedColor2 = color2 ?? TartarusProLightingColor(r: 0x00, g: 0x00, b: 0xFF)
+    let resolvedSpeed = UInt8(max(0, min(255, speed ?? 2)))
+    let packet = TartarusProLightingProtocol.matrixEffectReport(
+      effect: effect,
+      primaryColor: resolvedColor1,
+      secondaryColor: resolvedColor2,
+      speed: resolvedSpeed
+    )
+    let color1Hex = String(format: "%02X%02X%02X", resolvedColor1.r, resolvedColor1.g, resolvedColor1.b)
+    let color2Hex = String(format: "%02X%02X%02X", resolvedColor2.r, resolvedColor2.g, resolvedColor2.b)
+    return (packet: packet, color1Hex: color1Hex, color2Hex: color2Hex, speed: resolvedSpeed)
+  }
+
+  func handleLightingControl(_ request: DaemonControlRequest) -> DaemonControlResponse {
+    guard request.command == "lighting" else {
+      return DaemonControlResponse(ok: false, message: "Unknown command '\(request.command)'.", readbackHex: nil)
+    }
+    guard config.enableLighting else {
+      return DaemonControlResponse(ok: false, message: "Lighting is disabled in daemon config.", readbackHex: nil)
+    }
+    guard !lightingListeners.isEmpty else {
+      return DaemonControlResponse(ok: false, message: "No lighting interface is open.", readbackHex: nil)
+    }
+
+    var summary: [String] = []
+    var readbackHex: String?
+
+    if let brightness = request.brightness {
+      guard (0...255).contains(brightness) else {
+        return DaemonControlResponse(ok: false, message: "Invalid brightness \(brightness).", readbackHex: nil)
+      }
+      let packet = TartarusProLightingProtocol.brightnessReport(value: UInt8(brightness))
+      guard let response = writeLightingReport(packet, eventName: "control brightness=\(brightness)") else {
+        return DaemonControlResponse(ok: false, message: "Failed to write brightness packet.", readbackHex: nil)
+      }
+      summary.append("brightness=\(brightness) status=\(response.first ?? 0)")
+    }
+
+    if let staticColorHex = request.staticColorHex {
+      guard let color = TartarusProLightingColor.fromHexString(staticColorHex) else {
+        return DaemonControlResponse(ok: false, message: "Invalid static color '\(staticColorHex)'.", readbackHex: nil)
+      }
+      let packet = TartarusProLightingProtocol.staticEffectReport(color: color)
+      guard let response = writeLightingReport(packet, eventName: "control static=\(staticColorHex)") else {
+        return DaemonControlResponse(ok: false, message: "Failed to write static color packet.", readbackHex: nil)
+      }
+      summary.append(
+        "static=\(String(format: "%02X%02X%02X", color.r, color.g, color.b)) status=\(response.first ?? 0)"
+      )
+    }
+
+    if let layer = request.layer {
+      guard (1...3).contains(layer) else {
+        return DaemonControlResponse(ok: false, message: "Invalid layer \(layer).", readbackHex: nil)
+      }
+      let color = TartarusProLightingColor.layerIndicator(layer: layer)
+      let packet = TartarusProLightingProtocol.profileIndicatorReport(layer: layer)
+      guard let response = writeLightingReport(packet, eventName: "control layer=\(layer)") else {
+        return DaemonControlResponse(ok: false, message: "Failed to write layer indicator packet.", readbackHex: nil)
+      }
+      summary.append(
+        "layer=\(layer) color=\(String(format: "%02X%02X%02X", color.r, color.g, color.b)) status=\(response.first ?? 0)"
+      )
+    }
+
+    if let effectRaw = request.effect {
+      guard let effect = TartarusProLightingEffect.fromString(effectRaw) else {
+        return DaemonControlResponse(ok: false, message: "Invalid effect '\(effectRaw)'.", readbackHex: nil)
+      }
+      if let rawColor1 = request.effectColorHex1, TartarusProLightingColor.fromHexString(rawColor1) == nil {
+        return DaemonControlResponse(ok: false, message: "Invalid effectColorHex1 '\(rawColor1)'.", readbackHex: nil)
+      }
+      if let rawColor2 = request.effectColorHex2, TartarusProLightingColor.fromHexString(rawColor2) == nil {
+        return DaemonControlResponse(ok: false, message: "Invalid effectColorHex2 '\(rawColor2)'.", readbackHex: nil)
+      }
+      let color1 = request.effectColorHex1.flatMap { TartarusProLightingColor.fromHexString($0) }
+      let color2 = request.effectColorHex2.flatMap { TartarusProLightingColor.fromHexString($0) }
+      let payload = lightingEffectPayload(
+        effect: effect,
+        color1: color1,
+        color2: color2,
+        speed: request.effectSpeed
+      )
+      guard let response = writeLightingReport(
+        payload.packet,
+        eventName: "control effect=\(effect.rawValue) color1=\(payload.color1Hex) color2=\(payload.color2Hex) speed=\(payload.speed)"
+      ) else {
+        return DaemonControlResponse(ok: false, message: "Failed to write effect packet.", readbackHex: nil)
+      }
+      summary.append(
+        "effect=\(effect.rawValue) color1=\(payload.color1Hex) color2=\(payload.color2Hex) speed=\(payload.speed) status=\(response.first ?? 0)"
+      )
+    }
+
+    if request.readback == true {
+      let packet = TartarusProLightingProtocol.getStaticEffectReport()
+      guard let response = writeLightingReport(packet, eventName: "control readback") else {
+        return DaemonControlResponse(ok: false, message: "Failed to read back static color.", readbackHex: nil)
+      }
+      if let color = TartarusProLightingProtocol.parseStaticColor(from: response) {
+        readbackHex = String(format: "%02X%02X%02X", color.r, color.g, color.b)
+        summary.append("readback=\(readbackHex ?? "unknown") status=\(response.first ?? 0)")
+      } else {
+        summary.append("readback parse failed status=\(response.first ?? 0)")
+      }
+    }
+
+    if summary.isEmpty {
+      return DaemonControlResponse(
+        ok: false,
+        message: "No lighting fields supplied. Provide brightness, staticColorHex, layer, effect, or readback.",
+        readbackHex: nil
+      )
+    }
+
+    return DaemonControlResponse(ok: true, message: summary.joined(separator: " | "), readbackHex: readbackHex)
+  }
+
+  if let controlServer = startControlServer(handler: { request in
+    handleLightingControl(request)
+  }) {
+    listeners.append(controlServer)
+  }
+
   func toggleLayerIfNeeded() {
     if layerUsedAsModifier {
       return
@@ -950,6 +1309,7 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
     if config.logInputEvents {
       print("[layer] switched to \(currentLayer)")
     }
+    applyLayerLighting(currentLayer)
     publishStatus(lastEvent: "layer switched to \(currentLayer)")
   }
 
@@ -1220,6 +1580,14 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
     }
   }
 
+  func lightingDeviceKey(_ device: HIDDevice) -> String {
+    let info = device.info
+    let featureIds = device.reportIDs(for: .feature)
+      .map(String.init)
+      .joined(separator: ",")
+    return "\(info.vendorId):\(info.productId):\(info.locationId):\(info.usagePage):\(info.usage):\(device.inputReportSize()):\(device.maxReportSize(for: .feature)):\(featureIds)"
+  }
+
   for interfaceIndex in usedInterfaces.sorted() {
     guard let device = deviceByInterface[interfaceIndex] else {
       print("Mapping references interface \(interfaceIndex), but no matching HID interface was classified.")
@@ -1398,8 +1766,76 @@ func startDaemon(mapping: DeviceMapping, profiles: ProfilesConfig?, macros: Macr
           }
         }, openOptions: options)
       }
+      let featureIds = device.reportIDs(for: .feature)
+      if !featureIds.isEmpty {
+        lightingListeners.append(listener)
+        openedLightingDeviceKeys.insert(lightingDeviceKey(device))
+      }
       listeners.append(listener)
     }
+  }
+
+  if config.enableLighting && lightingListeners.isEmpty {
+    for device in devices {
+      let deviceKey = lightingDeviceKey(device)
+      guard !openedLightingDeviceKeys.contains(deviceKey) else {
+        continue
+      }
+      let featureIds = device.reportIDs(for: .feature)
+      let maxFeatureSize = device.maxReportSize(for: .feature)
+      guard !featureIds.isEmpty || maxFeatureSize > 0 else {
+        continue
+      }
+
+      let listener = HIDInputListener(device: device)
+      do {
+        try startWithFallback { options in
+          try listener.start(handler: { _ in }, openOptions: options)
+        }
+        lightingListeners.append(listener)
+        listeners.append(listener)
+        openedLightingDeviceKeys.insert(deviceKey)
+        if config.logInputEvents {
+          let info = device.info
+          print("[lighting] opened dedicated listener vendor=\(info.vendorId) product=\(info.productId) location=\(info.locationId) usagePage=\(info.usagePage) usage=\(info.usage) featureIds=\(featureIds)")
+        }
+      } catch {
+        if config.logInputEvents {
+          let info = device.info
+          print("[lighting] failed to open dedicated listener vendor=\(info.vendorId) product=\(info.productId) location=\(info.locationId) usagePage=\(info.usagePage) usage=\(info.usage): \(error.localizedDescription)")
+        }
+      }
+    }
+  }
+
+  if config.enableLighting, let brightness = config.lightingBrightness {
+    let request = TartarusProLightingProtocol.brightnessReport(value: brightness)
+    writeLightingReport(request, eventName: "brightness=\(brightness)")
+  }
+
+  if config.enableLighting, let staticColor = config.lightingStaticColor {
+    let request = TartarusProLightingProtocol.staticEffectReport(color: staticColor)
+    writeLightingReport(
+      request,
+      eventName: "startup static=\(String(format: "%02X%02X%02X", staticColor.r, staticColor.g, staticColor.b))"
+    )
+  }
+
+  if config.enableLighting, let effect = config.lightingEffect {
+    let payload = lightingEffectPayload(
+      effect: effect,
+      color1: config.lightingEffectColor1,
+      color2: config.lightingEffectColor2,
+      speed: config.lightingEffectSpeed.map { Int($0) }
+    )
+    writeLightingReport(
+      payload.packet,
+      eventName: "startup effect=\(effect.rawValue) color1=\(payload.color1Hex) color2=\(payload.color2Hex) speed=\(payload.speed)"
+    )
+  }
+
+  if config.enableLighting {
+    applyLayerLighting(currentLayer)
   }
 
   if listeners.isEmpty {
@@ -1479,6 +1915,34 @@ func run() -> Int32 {
       print("Output injection enabled.")
     } else {
       print("Output injection disabled.")
+    }
+    if config.enableLighting {
+      var components: [String] = []
+      if let brightness = config.lightingBrightness {
+        components.append("brightness=\(brightness)")
+      }
+      if let staticColor = config.lightingStaticColor {
+        components.append("static=\(String(format: "%02X%02X%02X", staticColor.r, staticColor.g, staticColor.b))")
+      }
+      if let effect = config.lightingEffect {
+        components.append("effect=\(effect.rawValue)")
+      }
+      if let color1 = config.lightingEffectColor1 {
+        components.append("effectColor1=\(String(format: "%02X%02X%02X", color1.r, color1.g, color1.b))")
+      }
+      if let color2 = config.lightingEffectColor2 {
+        components.append("effectColor2=\(String(format: "%02X%02X%02X", color2.r, color2.g, color2.b))")
+      }
+      if let speed = config.lightingEffectSpeed {
+        components.append("effectSpeed=\(speed)")
+      }
+      if components.isEmpty {
+        print("Lighting enabled.")
+      } else {
+        print("Lighting enabled (\(components.joined(separator: ", "))).")
+      }
+    } else {
+      print("Lighting disabled.")
     }
     if config.seize {
       if config.seizeFallback {
