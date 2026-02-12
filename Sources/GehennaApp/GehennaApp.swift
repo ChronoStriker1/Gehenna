@@ -1,5 +1,6 @@
 import AppKit
 import GehennaCore
+import GehennaDaemonShared
 import SwiftUI
 import Darwin
 import ApplicationServices
@@ -21,6 +22,18 @@ enum AppSettingKey {
 
 enum AppInfo {
   static let version = "0.7.5"
+}
+
+private let gehennaDaemonModeFlag = "--gehenna-daemon-mode"
+private let daemonProcessRegex = "gehenna-daemon-mode|GehennaDaemon"
+
+private func daemonModeArgumentsFromCommandLine(_ commandLine: [String] = CommandLine.arguments) -> [String]? {
+  guard commandLine.contains(gehennaDaemonModeFlag) else {
+    return nil
+  }
+  var daemonArgs: [String] = [commandLine.first ?? "GehennaApp"]
+  daemonArgs.append(contentsOf: commandLine.dropFirst().filter { $0 != gehennaDaemonModeFlag })
+  return daemonArgs
 }
 
 struct ActiveAppMessage: Codable {
@@ -110,7 +123,104 @@ final class DaemonController: ObservableObject {
   @Published var lightingReadbackHex: String? = nil
 
   private var timer: Timer?
+  private var daemonLaunchTask: Process?
+  private var daemonLogHandle: FileHandle?
+  private var isStoppingDaemon = false
   private var syncingRunAtLogin = false
+
+  private func appLogURL() -> URL? {
+    let fm = FileManager.default
+    guard let logsDir = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?
+      .appendingPathComponent("Gehenna", isDirectory: true)
+    else {
+      return nil
+    }
+    try? fm.createDirectory(at: logsDir, withIntermediateDirectories: true)
+    return logsDir.appendingPathComponent("app.log")
+  }
+
+  private func logApp(_ message: String) {
+    guard let url = appLogURL() else { return }
+    let ts = ISO8601DateFormatter().string(from: Date())
+    let line = "[\(ts)] \(message)\n"
+    guard let data = line.data(using: .utf8) else { return }
+    if FileManager.default.fileExists(atPath: url.path),
+       let handle = try? FileHandle(forWritingTo: url) {
+      defer { try? handle.close() }
+      _ = try? handle.seekToEnd()
+      try? handle.write(contentsOf: data)
+    } else {
+      try? data.write(to: url, options: .atomic)
+    }
+  }
+
+  private func daemonLogURL() -> URL? {
+    let fm = FileManager.default
+    let logsDir = fm.homeDirectoryForCurrentUser
+      .appendingPathComponent("Library/Logs/Gehenna", isDirectory: true)
+    try? fm.createDirectory(at: logsDir, withIntermediateDirectories: true)
+    return logsDir.appendingPathComponent("daemon.log")
+  }
+
+  private func configureDaemonLogging(for process: Process) {
+    releaseDaemonLoggingHandle()
+    guard let logURL = daemonLogURL() else { return }
+    let fm = FileManager.default
+    if !fm.fileExists(atPath: logURL.path) {
+      fm.createFile(atPath: logURL.path, contents: nil)
+    }
+    guard let handle = try? FileHandle(forWritingTo: logURL) else { return }
+    _ = try? handle.seekToEnd()
+    process.standardOutput = handle
+    process.standardError = handle
+    daemonLogHandle = handle
+  }
+
+  private func releaseDaemonLoggingHandle() {
+    try? daemonLogHandle?.close()
+    daemonLogHandle = nil
+  }
+
+  private func runningDaemonPIDs() -> [Int] {
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: "/usr/bin/pgrep")
+    process.arguments = ["-f", daemonProcessRegex]
+    let output = Pipe()
+    process.standardOutput = output
+    do {
+      try process.run()
+      let data = output.fileHandleForReading.readDataToEndOfFile()
+      let text = String(data: data, encoding: .utf8) ?? ""
+      return text
+        .split(whereSeparator: \.isNewline)
+        .compactMap { Int($0.trimmingCharacters(in: .whitespacesAndNewlines)) }
+    } catch {
+      return []
+    }
+  }
+
+  private func hasRunningDaemonProcess() -> Bool {
+    !runningDaemonPIDs().isEmpty
+  }
+
+  private func hasRequiredPermissions(prompt: Bool) -> Bool {
+    var ok = true
+
+    if !CGPreflightListenEventAccess() {
+      if prompt {
+        _ = CGRequestListenEventAccess()
+      }
+      ok = false
+    }
+
+    let axPromptKey = "AXTrustedCheckOptionPrompt" as CFString
+    let axOptions = [axPromptKey: prompt as CFBoolean] as CFDictionary
+    if !AXIsProcessTrustedWithOptions(axOptions) {
+      ok = false
+    }
+
+    return ok
+  }
 
   private init() {
     startMinimized = UserDefaults.standard.bool(forKey: AppSettingKey.startMinimized)
@@ -207,13 +317,70 @@ final class DaemonController: ObservableObject {
   }
 
   func runSeizedDaemon() {
-    let scriptURL = repoRoot().appendingPathComponent("scripts/gehenna-seize.sh")
+    if !hasRequiredPermissions(prompt: true) {
+      status = "Grant Input Monitoring + Accessibility for Gehenna, then start daemon again."
+      return
+    }
+
+    if daemonLaunchTask?.isRunning == true || hasRunningDaemonProcess() {
+      status = "Daemon already running."
+      refreshStatus()
+      return
+    }
+
+    guard let executableURL = Bundle.main.executableURL else {
+      status = "Missing app executable."
+      return
+    }
+    let root = repoRoot()
+    let workingRoot = runtimeWorkingRoot(from: root)
     let process = Process()
-    process.executableURL = scriptURL
-    var env = ProcessInfo.processInfo.environment
-    env["GEHENNA_LOG_INPUT"] = logInputEvents ? "1" : "0"
-    process.environment = env
-    var args: [String] = []
+    process.executableURL = executableURL
+    process.currentDirectoryURL = workingRoot
+    configureDaemonLogging(for: process)
+    let args = daemonArguments(seize: true)
+    process.arguments = args
+    logApp("runSeizedDaemon start binary=\(executableURL.path) cwd=\(workingRoot.path) args=\(args.joined(separator: " "))")
+    isStoppingDaemon = false
+    process.terminationHandler = { [weak self] task in
+      DispatchQueue.main.async {
+        self?.logApp("runSeizedDaemon exit status=\(task.terminationStatus)")
+        self?.releaseDaemonLoggingHandle()
+        if self?.daemonLaunchTask === task {
+          self?.daemonLaunchTask = nil
+        }
+        if task.terminationStatus != 0, self?.isStoppingDaemon == false {
+          self?.status = "Seized start failed (exit \(task.terminationStatus)); trying non-seized mode."
+          self?.runDaemonWithoutSeize()
+        }
+        self?.refreshStatus()
+        self?.refreshLog()
+      }
+    }
+
+    status = "Launching daemon..."
+    do {
+      daemonLaunchTask = process
+      try process.run()
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+        self?.refreshStatus()
+        self?.refreshLog()
+      }
+    } catch {
+      daemonLaunchTask = nil
+      releaseDaemonLoggingHandle()
+      status = "Failed to start daemon: \(error.localizedDescription)"
+    }
+  }
+
+  private func daemonArguments(seize: Bool) -> [String] {
+    var args: [String] = [gehennaDaemonModeFlag, "--enable-output"]
+    if seize {
+      args.append(contentsOf: ["--seize", "--seize-fallback"])
+    }
+    if logInputEvents {
+      args.append("--log-input")
+    }
     let brightness = min(255, max(0, startupLightingBrightness))
     args.append(contentsOf: ["--lighting-brightness", "\(brightness)"])
     if let effect = TartarusProLightingEffect.fromString(startupLightingEffect) {
@@ -227,33 +394,85 @@ final class DaemonController: ObservableObject {
     }
     let speed = min(255, max(0, startupLightingEffectSpeed))
     args.append(contentsOf: ["--lighting-effect-speed", "\(speed)"])
+    return args
+  }
+
+  private func sendDaemonSignal(_ signalName: String) {
+    let process = Process()
+    process.executableURL = URL(fileURLWithPath: "/usr/bin/pkill")
+    process.arguments = ["-\(signalName)", "-f", daemonProcessRegex]
+    do {
+      try process.run()
+      process.waitUntilExit()
+    } catch {
+      logApp("sendDaemonSignal failed signal=\(signalName) error=\(error.localizedDescription)")
+    }
+  }
+
+  private func runDaemonWithoutSeize() {
+    if daemonLaunchTask?.isRunning == true || hasRunningDaemonProcess() {
+      status = "Daemon already running."
+      refreshStatus()
+      return
+    }
+
+    guard let executableURL = Bundle.main.executableURL else {
+      status = "Missing app executable."
+      return
+    }
+    let root = repoRoot()
+    let workingRoot = runtimeWorkingRoot(from: root)
+    let process = Process()
+    process.executableURL = executableURL
+    process.currentDirectoryURL = workingRoot
+    configureDaemonLogging(for: process)
+    let args = daemonArguments(seize: false)
     process.arguments = args
-    status = "Launching daemon..."
-    DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-      do {
-        try process.run()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-          self?.refreshStatus()
-          self?.refreshLog()
+    logApp("runDaemonWithoutSeize start binary=\(executableURL.path) cwd=\(workingRoot.path) args=\(args.joined(separator: " "))")
+    isStoppingDaemon = false
+    process.terminationHandler = { [weak self] task in
+      DispatchQueue.main.async {
+        self?.logApp("runDaemonWithoutSeize exit status=\(task.terminationStatus)")
+        self?.releaseDaemonLoggingHandle()
+        if self?.daemonLaunchTask === task {
+          self?.daemonLaunchTask = nil
         }
-      } catch {
-        DispatchQueue.main.async {
-          self?.status = "Failed to start daemon: \(error.localizedDescription)"
+        if task.terminationStatus != 0, self?.isStoppingDaemon == false {
+          self?.status = "Failed to start daemon in non-seized mode (exit \(task.terminationStatus))."
         }
+        self?.refreshStatus()
+        self?.refreshLog()
       }
+    }
+
+    do {
+      daemonLaunchTask = process
+      try process.run()
+      logApp("runDaemonWithoutSeize launched pid=\(process.processIdentifier)")
+      status = "Daemon started in non-seized mode."
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
+        self?.refreshStatus()
+        self?.refreshLog()
+      }
+    } catch {
+      releaseDaemonLoggingHandle()
+      logApp("runDaemonWithoutSeize failed error=\(error.localizedDescription)")
+      status = "Fallback start failed: \(error.localizedDescription)"
     }
   }
 
   func stopDaemon() {
-    let scriptURL = repoRoot().appendingPathComponent("scripts/gehenna-stop.sh")
-    let process = Process()
-    process.executableURL = scriptURL
-    do {
-      try process.run()
-      status = "Stop signal sent."
-      refreshStatus()
-    } catch {
-      status = "Failed to stop daemon: \(error.localizedDescription)"
+    isStoppingDaemon = true
+    if let task = daemonLaunchTask, task.isRunning {
+      task.terminate()
+    }
+    sendDaemonSignal("TERM")
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) { [weak self] in
+      self?.status = "Stop signal sent."
+      self?.refreshStatus()
+    }
+    DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) { [weak self] in
+      self?.isStoppingDaemon = false
     }
   }
 
@@ -265,31 +484,16 @@ final class DaemonController: ObservableObject {
   }
 
   func reloadConfigs() {
-    let scriptURL = repoRoot().appendingPathComponent("scripts/gehenna-reload.sh")
-    let process = Process()
-    process.executableURL = scriptURL
-    do {
-      try process.run()
-      status = "Reload signal sent."
-    } catch {
-      status = "Failed to reload: \(error.localizedDescription)"
-    }
+    sendDaemonSignal("USR1")
+    status = "Reload signal sent."
   }
 
   func refreshStatus() {
-    let process = Process()
-    process.executableURL = URL(fileURLWithPath: "/usr/bin/pgrep")
-    process.arguments = ["-f", "GehennaDaemon"]
-    let output = Pipe()
-    process.standardOutput = output
-    do {
-      try process.run()
-      let data = output.fileHandleForReading.readDataToEndOfFile()
-      let text = String(data: data, encoding: .utf8) ?? ""
-      isRunning = !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-      status = isRunning ? "Running" : "Stopped"
-    } catch {
-      isRunning = false
+    let pids = runningDaemonPIDs()
+    isRunning = !pids.isEmpty
+    if isRunning {
+      status = "Running (pid \(pids[0]))"
+    } else {
       status = "Stopped"
     }
 
@@ -475,9 +679,10 @@ final class DaemonController: ObservableObject {
   }
 
   func refreshLog() {
-    let logURL = FileManager.default
-      .homeDirectoryForCurrentUser
-      .appendingPathComponent("Library/Logs/Gehenna/daemon.log")
+    guard let logURL = daemonLogURL() else {
+      logText = "No log found yet."
+      return
+    }
     guard let data = try? Data(contentsOf: logURL),
           let text = String(data: data, encoding: .utf8) else {
       logText = "No log found yet."
@@ -489,9 +694,10 @@ final class DaemonController: ObservableObject {
   }
 
   func clearLog() {
-    let logURL = FileManager.default
-      .homeDirectoryForCurrentUser
-      .appendingPathComponent("Library/Logs/Gehenna/daemon.log")
+    guard let logURL = daemonLogURL() else {
+      status = "Failed to clear log: unable to resolve log path."
+      return
+    }
     do {
       try Data().write(to: logURL, options: .atomic)
       logText = ""
@@ -3067,26 +3273,83 @@ struct MacrosView: View {
 }
 
 private func repoRoot() -> URL {
-  let fileRoot = URL(fileURLWithPath: #file)
-    .deletingLastPathComponent()
-    .deletingLastPathComponent()
-    .deletingLastPathComponent()
-  if FileManager.default.fileExists(atPath: fileRoot.appendingPathComponent("configs").path) {
-    return fileRoot
+  func candidateScore(_ root: URL) -> Int {
+    let fm = FileManager.default
+    let hasConfigs = fm.fileExists(atPath: root.appendingPathComponent("configs").path)
+    let hasScripts = fm.fileExists(atPath: root.appendingPathComponent("scripts").path)
+    if hasConfigs && hasScripts {
+      return 3
+    }
+    if hasConfigs {
+      return 2
+    }
+    if hasScripts {
+      return 1
+    }
+    return 0
   }
 
+  func bestLayout(at root: URL) -> (URL, Int) {
+    var best = (root, candidateScore(root))
+    let resources = root.appendingPathComponent("Resources", isDirectory: true)
+    let resourcesScore = candidateScore(resources)
+    if resourcesScore > best.1 {
+      best = (resources, resourcesScore)
+    }
+    return best
+  }
+
+  var bestFound: (URL, Int)? = nil
   if let execPath = Bundle.main.executableURL {
     var current = execPath.deletingLastPathComponent()
-    for _ in 0..<6 {
-      let candidate = current.appendingPathComponent("configs")
-      if FileManager.default.fileExists(atPath: candidate.path) {
-        return current
+    for _ in 0..<8 {
+      let candidate = bestLayout(at: current)
+      if candidate.1 == 3 {
+        return candidate.0
+      }
+      if let existing = bestFound {
+        if candidate.1 > existing.1 {
+          bestFound = candidate
+        }
+      } else if candidate.1 > 0 {
+        bestFound = candidate
       }
       current = current.deletingLastPathComponent()
     }
   }
 
+  let fileRoot = URL(fileURLWithPath: #file)
+    .deletingLastPathComponent()
+    .deletingLastPathComponent()
+    .deletingLastPathComponent()
+  let fileCandidate = bestLayout(at: fileRoot)
+  if fileCandidate.1 == 3 {
+    return fileCandidate.0
+  }
+  if let existing = bestFound {
+    if fileCandidate.1 > existing.1 {
+      bestFound = fileCandidate
+    }
+  } else if fileCandidate.1 > 0 {
+    bestFound = fileCandidate
+  }
+  if let bestFound {
+    return bestFound.0
+  }
+
   return URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+}
+
+private func runtimeWorkingRoot(from root: URL) -> URL {
+  let fm = FileManager.default
+  if fm.fileExists(atPath: root.appendingPathComponent("configs").path) {
+    return root
+  }
+  let parent = root.deletingLastPathComponent()
+  if fm.fileExists(atPath: parent.appendingPathComponent("configs").path) {
+    return parent
+  }
+  return root
 }
 
 @MainActor
@@ -3098,6 +3361,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
   private var menuTimer: Timer?
 
   func applicationDidFinishLaunching(_ notification: Notification) {
+    if let daemonArgs = daemonModeArgumentsFromCommandLine() {
+      NSApp.setActivationPolicy(.prohibited)
+      DispatchQueue.global(qos: .userInitiated).async {
+        let code = runGehennaDaemon(arguments: daemonArgs)
+        DispatchQueue.main.async {
+          NSApp.terminate(nil)
+          Darwin.exit(code)
+        }
+      }
+      return
+    }
+
     _ = signal(SIGPIPE, SIG_IGN)
     controller.applyDockIconVisibility()
     setupStatusItem()
@@ -3223,7 +3498,11 @@ struct GehennaApp: App {
 
   var body: some Scene {
     WindowGroup {
-      ContentView()
+      if daemonModeArgumentsFromCommandLine() == nil {
+        ContentView()
+      } else {
+        EmptyView()
+      }
     }
   }
 }

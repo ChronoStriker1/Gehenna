@@ -15,6 +15,10 @@ let package = Package(
       name: "GehennaCore",
       targets: ["GehennaCore"]
     ),
+    .library(
+      name: "GehennaDaemonShared",
+      targets: ["GehennaDaemonShared"]
+    ),
     .executable(
       name: "GehennaDaemon",
       targets: ["GehennaDaemon"]
@@ -35,13 +39,17 @@ let package = Package(
     .target(
       name: "GehennaCore"
     ),
-    .executableTarget(
-      name: "GehennaDaemon",
+    .target(
+      name: "GehennaDaemonShared",
       dependencies: ["GehennaHID", "GehennaCore"]
     ),
     .executableTarget(
+      name: "GehennaDaemon",
+      dependencies: ["GehennaDaemonShared"]
+    ),
+    .executableTarget(
       name: "GehennaApp",
-      dependencies: ["GehennaCore"]
+      dependencies: ["GehennaCore", "GehennaDaemonShared"]
     ),
     .executableTarget(
       name: "GehennaCLI",

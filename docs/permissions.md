@@ -20,6 +20,12 @@ sudo swift run GehennaDaemon --enable-output --seize
 
 `--seize` is strict by default. Use `--seize-fallback` to continue without seizing if strict open fails.
 
+If you see `IOReturn: -536870174` (`kIOReturnNotPermitted`), ensure Gehenna has Input Monitoring
+permission and avoid forcing daemon startup as root.
+
+For packaged app usage, Gehenna starts daemon mode through the app executable itself
+(`GehennaApp --gehenna-daemon-mode`) to keep the same TCC identity.
+
 ### Passwordless Wrapper (Optional)
 You can install a sudoers rule and use the wrapper script to avoid typing a password each run:
 
@@ -29,7 +35,8 @@ sudo chmod 0440 /etc/sudoers.d/gehenna
 /Users/chronostriker1/git/Gehenna/scripts/gehenna-seize.sh
 ```
 
-If you plan to use the launchd plist, install the sudoers rule first so the wrapper can self-sudo.
+If you plan to use the launchd plist, sudoers is optional. The wrapper can run as your user and fall back
+from strict seize automatically.
 
 If you want the GUI stop button to work without a password, add the stop script:
 

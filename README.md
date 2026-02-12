@@ -39,7 +39,15 @@ swift run GehennaDaemon --enable-output
 If you build/package the app bundle, install:
 - `/Applications/Gehenna.app`
 
-For GUI start/stop/reload to work without password prompts, add sudoers rules:
+Validate the bundle after install:
+```bash
+./scripts/verify-app-bundle.sh /Applications/Gehenna.app
+```
+
+GUI start/stop/reload now prefer running the daemon as your user (no sudo required).
+The app launches daemon mode through the same `GehennaApp` executable (`--gehenna-daemon-mode`)
+so TCC permissions are shared with the app bundle.
+If you want optional passwordless sudo wrappers too, add:
 ```sudoers
 Defaults:chronostriker1 !requiretty
 chronostriker1 ALL=(root) NOPASSWD: /Applications/Gehenna.app/Contents/scripts/gehenna-seize.sh, /Applications/Gehenna.app/Contents/scripts/gehenna-stop.sh, /Applications/Gehenna.app/Contents/scripts/gehenna-reload.sh
@@ -82,6 +90,10 @@ swift run GehennaCLI lighting --product 0x0244 --index 0 --static 00AAFF --readb
 ## Troubleshooting
 - `Failed to open IOHIDManager (exclusive access)`:
   another process has seized the device. Stop the daemon before direct HID probing.
+- `Failed to open IOHIDManager (IOReturn: -536870174)` (`kIOReturnNotPermitted`):
+  grant Input Monitoring to Gehenna and start from the app (non-sudo path).
+- `Seize failed for N interface(s); continuing without seize.`:
+  expected when strict seize is unavailable; daemon remains functional in fallback mode.
 - `Failed to open HID device (IOReturn: -536870207)` in strict seize:
   run the daemon through the privileged seize script/sudoers path.
 

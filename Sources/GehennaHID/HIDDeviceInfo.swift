@@ -98,6 +98,9 @@ public enum HIDError: Error, LocalizedError {
       if code == kIOReturnExclusiveAccess {
         return "Failed to open IOHIDManager (exclusive access). Another process has seized the device."
       }
+      if code == kIOReturnNotPermitted {
+        return "Failed to open IOHIDManager (not permitted). Ensure Input Monitoring is granted and start Gehenna without forcing sudo/root."
+      }
       return "Failed to open IOHIDManager (IOReturn: \(code))."
     }
   }
