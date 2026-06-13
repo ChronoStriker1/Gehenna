@@ -123,17 +123,3 @@ public struct Action: Sendable, Codable, Equatable {
     self.scrollMultiplier = scrollMultiplier
   }
 }
-
-public struct Profile: Sendable, Codable, Equatable {
-  public let id: UUID
-  public let name: String
-  public let perAppBundleId: String?
-  public let bindings: [String: Action]
-
-  public init(id: UUID, name: String, perAppBundleId: String? = nil, bindings: [String: Action]) {
-    self.id = id
-    self.name = name
-    self.perAppBundleId = perAppBundleId
-    self.bindings = bindings
-  }
-}

@@ -36,28 +36,6 @@ private func daemonModeArgumentsFromCommandLine(_ commandLine: [String] = Comman
   return daemonArgs
 }
 
-struct ActiveAppMessage: Codable {
-  let bundleId: String
-}
-
-struct DaemonControlRequest: Codable {
-  let command: String
-  let staticColorHex: String?
-  let brightness: Int?
-  let layer: Int?
-  let effect: String?
-  let effectColorHex1: String?
-  let effectColorHex2: String?
-  let effectSpeed: Int?
-  let readback: Bool?
-}
-
-struct DaemonControlResponse: Codable {
-  let ok: Bool
-  let message: String
-  let readbackHex: String?
-}
-
 @MainActor
 final class DaemonController: ObservableObject {
   static let shared = DaemonController()
@@ -860,20 +838,6 @@ final class DaemonController: ObservableObject {
     }
   }
 
-}
-
-struct DaemonStatus: Codable {
-  let pid: Int
-  let deviceName: String
-  let connected: Bool
-  let layer: Int
-  let layerModifier: Bool
-  let profileName: String?
-  let bundleId: String?
-  let lastEvent: String?
-  let keymapPopupToken: Int?
-  let keymapPopupVisible: Bool
-  let updatedAt: String
 }
 
 struct ContentView: View {
@@ -3359,6 +3323,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
   private var profileMenuItem: NSMenuItem?
   private let controller = DaemonController.shared
   private var menuTimer: Timer?
+
+  func applicationWillFinishLaunching(_ notification: Notification) {
+    if daemonModeArgumentsFromCommandLine() != nil {
+      NSApp.setActivationPolicy(.prohibited)
+      return
+    }
+    controller.applyDockIconVisibility()
+  }
 
   func applicationDidFinishLaunching(_ notification: Notification) {
     if let daemonArgs = daemonModeArgumentsFromCommandLine() {

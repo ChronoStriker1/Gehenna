@@ -11,6 +11,15 @@ final class GehennaCoreTests: XCTestCase {
     XCTAssertEqual(decoded?.keys, [0x1E])
   }
 
+  func testHIDKeyMapPunctuationMappings() {
+    XCTAssertEqual(HIDKeyMap.keyCode(forUsage: 0x33), 41)
+    XCTAssertEqual(HIDKeyMap.keyCode(forUsage: 0x34), 39)
+    XCTAssertEqual(HIDKeyMap.keyCode(forUsage: 0x39), 57)
+    XCTAssertEqual(HIDKeyMap.usage(forKeyCode: 41), 0x33)
+    XCTAssertEqual(HIDKeyMap.usage(forKeyCode: 39), 0x34)
+    XCTAssertEqual(HIDKeyMap.usage(forKeyCode: 57), 0x39)
+  }
+
   func testMappingLoader() throws {
     let json = """
     {

@@ -1,5 +1,6 @@
 import Foundation
 import GehennaCore
+import GehennaDaemonShared
 import GehennaHID
 import Darwin
 
@@ -72,24 +73,6 @@ struct LightingOptions {
   var effectSpeed: UInt8?
   var readback = false
   var seize = false
-}
-
-struct DaemonControlRequest: Codable {
-  let command: String
-  let staticColorHex: String?
-  let brightness: Int?
-  let layer: Int?
-  let effect: String?
-  let effectColorHex1: String?
-  let effectColorHex2: String?
-  let effectSpeed: Int?
-  let readback: Bool?
-}
-
-struct DaemonControlResponse: Codable {
-  let ok: Bool
-  let message: String
-  let readbackHex: String?
 }
 
 enum Command {
